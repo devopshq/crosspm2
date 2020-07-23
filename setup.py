@@ -41,7 +41,7 @@ setup(
     url=url,
     long_description=long_description,
     download_url="https://github.com/devopshq/crosspm2.git",
-    entry_points={"console_scripts": ["crosspm=crosspm.__main__:main"]},
+    entry_points={"console_scripts": ["crosspm2=crosspm.__main__:main"]},
     classifiers=[
         "Development Status :: {}".format(develop_status),
         "Environment :: Console",
@@ -70,6 +70,7 @@ setup(
         "pypandoc==1.5",
     ],
     tests_require=[
+        "flake8==3.7.9",
         "pytest<=4.6.9; python_version < '3.5'",
         "pytest>=5.2; python_version >= '3.5'",
         "pytest-flask<1.0.0; python_version < '3.5'",
@@ -91,6 +92,10 @@ setup(
         "Jinja2>=2.11; python_version >= '3.5'",
         "patool==1.12",  # need for pyunpack
         "pyunpack==0.1.2",
+        "addict==2.2.1",  # need for crosspm2 contract scheme
+        "packaging>=20.4",  # need for crosspm2 contract scheme
+        "parse>=1.15.0",  # need for crosspm2 contract scheme
+        "tabulate>=0.8.7",  # need for crosspm2 contract scheme
     ],
     package_data={
         "": [

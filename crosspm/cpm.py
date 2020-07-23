@@ -6,6 +6,7 @@
 Usage:
     crosspm download [options]
     crosspm lock [DEPS] [DEPSLOCK] [options]
+    crosspm lock2 [DEPS] [DEPSLOCK] [options]
     crosspm usedby [DEPS] [options]
     crosspm pack <OUT> <SOURCE> [options]
     crosspm cache [size | age | clear [hard]]
@@ -56,6 +57,7 @@ from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.downloader import Downloader
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.locker import Locker
+from crosspm.helpers.locker2 import Locker2
 from crosspm.helpers.output import Output
 from crosspm.helpers.python import get_object_from_string
 from crosspm.helpers.usedby import Usedby
@@ -135,6 +137,8 @@ class CrossPM:
             self.command_ = Downloader
         elif self._args['lock']:
             self.command_ = Locker
+        elif self._args['lock2']:
+            self.command_ = Locker2
         elif self._args['usedby']:
             self.command_ = Usedby
         else:
@@ -204,11 +208,15 @@ class CrossPM:
         _depslock_path = self._args['--depslock-path']
         if _depslock_path is None and self._args['--dependencies-lock-content'] is not None:
             _depslock_path = DependenciesContent(self._args['--dependencies-lock-content'])
-        if self._args['lock']:
+        if self._args['lock'] or self._args['lock2']:
             if self._args['DEPS']:
                 _deps_path = self._args['DEPS']
             if self._args['DEPSLOCK']:
                 _depslock_path = self._args['DEPSLOCK']
+
+        if not _depslock_path:
+            _depslock_path = _deps_path + '.lock'
+
         self._config = Config(self._args['--config'], self._args['--options'], self._args['--no-fails'], _depslock_path,
                               _deps_path, self._args['--lock-on-success'],
                               self._args['--prefer-local'])
@@ -313,6 +321,8 @@ class CrossPM:
                         errorcode, msg = self.command(self.command_)
                     elif self._args['lock']:
                         errorcode, msg = self.command(self.command_)
+                    elif self._args['lock2']:
+                        errorcode, msg = self.command(self.command_)
                     elif self._args['usedby']:
                         errorcode, msg = self.command(self.command_)
                     elif self._args['pack']:
@@ -375,7 +385,7 @@ class CrossPM:
 
         do_load = not self._args['--list']
         # hack for Locker
-        if command_ is Locker:
+        if issubclass(command_, Locker):
             do_load = self.recursive
 
         cpm_ = command_(self._config, do_load, self.recursive)
