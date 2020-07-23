@@ -4,6 +4,7 @@ python:
   - '3.5'
   - '3.6'
   - '3.7'
+  - '3.8'
 
 branches:
   only:
@@ -16,30 +17,30 @@ install:
   - pip install -r requirements-ci.txt
 
 before_script:
-  - git config --global user.email "ak@alkov.pro"
-  - git config --global user.name "Alexander Kovalev"
+  - git config --global user.email "tim55667757@gmail.com"
+  - git config --global user.name "Timur Gilmullin"
 
 before_deploy:
   - GH_TOKEN="$(cat $GH_TOKEN_FILE)"
 
 script:
   - set -e
-  - flake8 crosspm
-  - coverage run -m py.test tests
-  - coverage xml
-  - if [[ ! $CODACY_PROJECT_TOKEN ]]; then echo "Variable CODACY_PROJECT_TOKEN not set. Step is skipped."; exit 0; else python-codacy-coverage -r coverage.xml; fi
+#  - flake8 crosspm
+#  - coverage run -m py.test tests
+#  - coverage xml
+#  - if [[ ! $CODACY_PROJECT_TOKEN ]]; then echo "Variable CODACY_PROJECT_TOKEN not set. Step is skipped."; else python-codacy-coverage -r coverage.xml; fi
   - set +e
 
 deploy:
   provider: pypi
   user: devopshq
   password:
-    secure: g5reDD6SgjPZrvjh0nhoKEUAHiltXiAlZDoqaQ4APAZT/cvcO7zJiaB3eRBnTw/8VPYo6iQubOb5puMrAvLK/egplY0AMCmLUIYMdykp4aqkezsuSCHQPS0SoNUB/sQGW0RKia7OdAXYIClZm90eFXxyrzZQBFkMvyz6DByOKBUai5KKWnr9kaDiP5g1urvpIeeNJMtsI+ML73QR2tzruuSjQbkx0siY9GybRgBpdiemJxsrUbjhN0rsEdYafcsTQBC9OHDSrDAl6UCOwin8EKYppS6exxF0Ut2je/NIuHt9JMjjDkdXLuERyMXF/G6WXv+xKWuaWlEpAOBh6+xa2YzqZWjfyk+mab7t/Pi3FHa+avb60CBW/zd9Q7onjz1WlAwKu7aDBsEDkqvjCkGujbPucMwBw1fKHjdTz2ITFnAth8q5LvdwGTzldLNDixdssTwwEAllN40fYpbFCBx7GF4564/NyaG1JBUKqa1QP0mUoN3KdWL71yf8xtux4CxLPgo1UC3aEYlXmyWnDST8BSMy91+BWWUEVhauyRUid6kDYOZJ8hn5yK//lfJqNFI7/mUnfMCqeqBtWLp19g8V2Ewx3KE0DARjJQ+8dLcZ3/6xYwVV+EkP7kCTIOPKMvaVn1TFswX1N08FekfdjF1g0wr5+ig8z3ubma1u8vz4iu0=
+    secure: "m4YN4BVmDgRTUjmrBvUUr9yWXNu33ReJqADv8WLnIrWA4puiX5PBxxJpWTw542G5S5e+2P+SCMmVtdESIcsXh1isrhyVmyUOfGBrV9GS7MsxBzdFXsZBXpmxr17+3IuPAvf10wAq46YPA91NhqKemKaCqielExDplmRJmBlqBiqzV+87tO6X4jbTpxWbqW703/6um+dgt5DAU1GkcEbSyfs3noTlc4Wf7IDnjD/5ZslbGF25hrv5F5WLvy6jUch1XAIuSnYW6fm2Hnp9sSW5HW+E1d7PLHZaWiTZkaVA+haR+e9BCSgxxlk2szc3C+ar7I3+CYdQYdmqsmjoFB4z3U9/RdV+LM/zkNsyYKwszx+DRx4uPomDfaLwUbs1+Ka3F14DAHW2vfDirSJXpCdJe07CdO3rACHNWCTugjtcUm3u33r9dhGeCuNs96mDBvcDZ+bkie8ob03jp6IS0fYSOz+yVHxnBtMNXQmK7kjYOm/vq4EpfU7IffdWAF0Zsduc07UFd0l9xFNoP4zRQpN2Ltai5yoJoFb3isieniygpGEtJ0ZCvsEa0jvrcCId3+xF7xCLIqP8eJ3QVmxvUpIKBzVqDGohBurU2vFu+Vbm0VxGkIuVe1NRVcCu26w9HqxjWLmNGF5Uh/xTPhL83TZWM3xHbhRuEtywLJJiCBI0YV0="
   distributions: sdist bdist_wheel
   skip_cleanup: true
   on:
     all_branches: true
-    python: '3.5'
+    python: '3.8'
 after_script:
 - echo "yes we run after_script"
 - echo "" > $GH_TOKEN_FILE

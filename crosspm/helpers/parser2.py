@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import fnmatch
+import re
 from pathlib import PurePath
 
 from addict import Dict
 
-from contracts.package_version import PackageVersion
-from helpers.parser import Parser
-from package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.contracts.package_version import PackageVersion
+from crosspm.helpers.parser import Parser
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class Parser2(Parser):
