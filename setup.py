@@ -70,6 +70,7 @@ setup(
         "pypandoc==1.5",
     ],
     tests_require=[
+        "flake8==3.7.9",
         "pytest<=4.6.9; python_version < '3.5'",
         "pytest>=5.2; python_version >= '3.5'",
         "pytest-flask<1.0.0; python_version < '3.5'",
