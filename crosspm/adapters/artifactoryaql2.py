@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import copy
+import http.client
 import json
 import logging
-import http.client
-
 from collections import OrderedDict
 
 import requests
@@ -11,10 +9,10 @@ from addict import Dict
 from artifactory import ArtifactoryPath
 from requests.auth import HTTPBasicAuth
 
+import crosspm.contracts.package
 from crosspm.adapters import artifactoryaql
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
-import crosspm.contracts.package
 from crosspm.helpers.package import Package
 
 PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'c.'

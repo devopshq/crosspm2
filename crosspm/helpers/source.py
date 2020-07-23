@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # from crosspm.helpers.exceptions import *
 import itertools
-from string import Template
 
 from addict import Dict
 

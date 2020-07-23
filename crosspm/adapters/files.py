@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
-import shutil
+import os
 import pathlib
+import shutil
+
 from crosspm.adapters.common import BaseAdapter
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
-import os
 
 CHUNK_SIZE = 1024
 
