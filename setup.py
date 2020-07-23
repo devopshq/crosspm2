@@ -92,6 +92,10 @@ setup(
         "Jinja2>=2.11; python_version >= '3.5'",
         "patool==1.12",  # need for pyunpack
         "pyunpack==0.1.2",
+        "addict==2.2.1",  # need for crosspm2 contract scheme
+        "packaging>=20.4",  # need for crosspm2 contract scheme
+        "parse>=1.15.0",  # need for crosspm2 contract scheme
+        "tabulate>=0.8.7",  # need for crosspm2 contract scheme
     ],
     package_data={
         "": [

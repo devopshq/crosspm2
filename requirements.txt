@@ -15,4 +15,6 @@ ordered-set>=4.0.2; python_version >= '3.5'
 packaging==20.4
 python-dateutil==2.8.1
 addict==2.2.1
-tabulate==0.8.7
+tabulate>=0.8.7
+packaging>=20.4
+parse>=1.15.0
