@@ -12,6 +12,7 @@ from crosspm.helpers.cache import Cache
 from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser
+from crosspm.helpers.parser2 import Parser2
 from crosspm.helpers.source import Source
 
 requests.packages.urllib3.disable_warnings()
@@ -47,6 +48,23 @@ CROSSPM_DEPENDENCY_FILENAME = 'dependencies.txt'  # maybe 'cpm.manifest'
 CROSSPM_DEPENDENCY_LOCK_FILENAME = CROSSPM_DEPENDENCY_FILENAME  # 'dependencies.txt.lock'
 CROSSPM_ADAPTERS_NAME = 'adapters'
 CROSSPM_ADAPTERS_DIR = os.path.join(CROSSPM_ROOT_DIR, CROSSPM_ADAPTERS_NAME)
+
+
+class FactoryParser:
+    def __init__(self):
+        self.parsers = {}
+        self.register_parser('repo', Parser)
+        self.register_parser('repo2', Parser2)
+
+    def register_parser(self, name, parser_cls):
+        self.parsers[name] = parser_cls
+
+    def create(self, name, data, config):
+        parser_cls = self.parsers[name]
+        return parser_cls(name, data, config)
+
+
+factory_parser = FactoryParser()
 
 
 class Config:
@@ -385,7 +403,7 @@ class Config:
         return result
 
     def parse_config(self, config_data, cmdline):
-        # init parsers
+        # init package_parsers
         if 'parsers' in config_data:
             self.init_parsers(config_data['parsers'])
 
@@ -488,13 +506,20 @@ class Config:
             _cmdline = {}
 
         # init cpm parameters
+        cpm_init_done = False
+
         for x in ['cpm', 'crosspm']:
             if x in config_data:
                 # init cache:
                 if 'cache' not in config_data:
                     config_data['cache'] = {}
                 self.init_cpm_and_cache(config_data[x], _cmdline, config_data['cache'])
+                cpm_init_done = True
                 break
+        if not cpm_init_done:
+            if 'cache' not in config_data:
+                config_data['cache'] = {}
+            self.init_cpm_and_cache({}, _cmdline, config_data['cache'])
 
         self._options = self.parse_options(self._options, _cmdline)
 
@@ -559,7 +584,7 @@ class Config:
         # gather items from defaults
         self._not_columns.update({k: v for k, v in self._defaults.items() if k not in self._not_columns})
 
-        # gather items from parsers
+        # gather items from package_parsers
         for _parser in self._parsers.values():
             self._not_columns.update({k: None for k in _parser.get_vars() if k not in self._not_columns})
 
@@ -570,7 +595,8 @@ class Config:
             if k != 'common':
                 if k not in self._parsers:
                     v.update({_k: _v for _k, _v in parsers['common'].items() if _k not in v})
-                    self._parsers[k] = Parser(k, v, self)
+
+                    self._parsers[k] = factory_parser.create(k, v, self)
                 else:
                     code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
                     msg = 'Config file contains multiple definitions of the same parser: [{}]'.format(k)
@@ -578,7 +604,7 @@ class Config:
                     raise CrosspmException(code, msg)
         if len(self._parsers) == 0:
             code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
-            msg = 'Config file does not contain parsers! Unable to process any further.'
+            msg = 'Config file does not contain package_parsers! Unable to process any further.'
             self._log.exception(msg)
             raise CrosspmException(code, msg)
 
