@@ -1,11 +1,7 @@
-from datetime import datetime
-
 import dateutil
-import time
-from addict import Dict
 
-from crosspm.contracts.contracts import Contract
-from crosspm.contracts.package_version import PackageVersion
+from contracts.contracts import Contract
+from contracts.package_version import PackageVersion
 
 
 class Package:

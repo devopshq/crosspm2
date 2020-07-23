@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import fnmatch
-import re
 from pathlib import PurePath
 
 from addict import Dict
 
 from contracts.package_version import PackageVersion
-from crosspm.helpers.parser import Parser
+from helpers.parser import Parser
 from package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 

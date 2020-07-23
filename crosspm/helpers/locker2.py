@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
-
-from crosspm.helpers.config import CROSSPM_DEPENDENCY_FILENAME
-from crosspm.helpers.content import DependenciesContent
-from crosspm.helpers.downloader import Downloader
 from crosspm.helpers.locker import Locker
 
 from crosspm.helpers.parser2 import Parser2
