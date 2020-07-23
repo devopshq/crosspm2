@@ -41,7 +41,7 @@ setup(
     url=url,
     long_description=long_description,
     download_url="https://github.com/devopshq/crosspm2.git",
-    entry_points={"console_scripts": ["crosspm=crosspm.__main__:main"]},
+    entry_points={"console_scripts": ["crosspm2=crosspm.__main__:main"]},
     classifiers=[
         "Development Status :: {}".format(develop_status),
         "Environment :: Console",
