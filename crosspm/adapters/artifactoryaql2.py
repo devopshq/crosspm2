@@ -188,6 +188,13 @@ class Adapter(artifactoryaql.Adapter):
                     last_error = msg
         return package_versions_with_contracts
 
+    # def find_package_in_repo_by_fullname(self, source, package_fullname):
+    #     package_urls = []
+    #     p = self.find_package_versions(auth, package_fullname, '', {}, last_error, self.parser, {})
+    #     self, _art_auth_etc, _file_name_pattern,
+    #     _path_pattern, _tmp_params, last_error, parser, paths_params)
+    #     return package_urls
+
     def get_auth_params(self, list_or_file_path, source):
         _auth_type = source.args['auth_type'].lower() if 'auth_type' in source.args else 'simple'
         _art_auth_etc = {}
@@ -210,3 +217,10 @@ class Adapter(artifactoryaql.Adapter):
         else:
             _art_auth_etc['verify'] = False
         return _art_auth_etc
+
+    def download_package(self, source, package):
+        find_package_urls
+
+        for url in package_urls:
+            ap = ArtifactoryPath(url)
+            ap.download()
