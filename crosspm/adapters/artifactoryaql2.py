@@ -7,7 +7,6 @@ from collections import OrderedDict
 import requests
 from addict import Dict
 from artifactory import ArtifactoryPath
-from requests.auth import HTTPBasicAuth
 
 import crosspm.contracts.package
 from crosspm.adapters import artifactoryaql
