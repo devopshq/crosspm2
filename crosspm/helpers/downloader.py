@@ -12,7 +12,7 @@ from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.package import Package
 from crosspm.helpers.parser import Parser
-from output_formatters.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
+from crosspm.output_formatters.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
 
 
 class Command(object):
