@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 import logging
 import os
+import pathlib
 from collections import OrderedDict, defaultdict
+
+import requests
+from artifactory import ArtifactoryPath
 
 from crosspm.helpers.config import CROSSPM_DEPENDENCY_FILENAME, CROSSPM_DEPENDENCY_LOCK_FILENAME, Config  # noqa
 from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.package import Package
 from crosspm.helpers.parser import Parser
+from crosspm.output_formatters.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
 
 
 class Command(object):
@@ -120,41 +125,36 @@ class Downloader(Command):
 
         return _packages
 
+    def find_package_in_artifactory(self, package):
+        return
+
     # Download packages or just unpack already loaded (it's up to adapter to decide)
-    def download_packages(self, depslock_file_path=None):
-        if depslock_file_path is None:
-            depslock_file_path = self._depslock_path
-        if depslock_file_path.__class__ is DependenciesContent:
-            # HACK для возможности проставления контента файла, а не пути
-            pass
-        elif isinstance(depslock_file_path, str):
-            if not os.path.isfile(depslock_file_path):
-                depslock_file_path = self._deps_path
+    def download_packages(self):
+        packages_path_in_repo = DepsTxtLockListFormatter.read_packages_from_lock_file(self._config.depslock_path)
 
-        deps_content = self._deps_path if isinstance(self._deps_path, DependenciesContent) else None
-        self.search_dependencies(depslock_file_path, deps_content=deps_content)
+        last_error = []
 
-        if self.do_load:
-            self._log.info('Unpack ...')
+        session = requests.Session()
 
-            total = len(self._root_package.all_packages)
-            for i, _pkg in enumerate(self._root_package.all_packages):
-                self.update_progress('Download/Unpack:', float(i) / float(total) * 100.0)
-                if _pkg.download():  # self.packed_path):
-                    _pkg.unpack()  # self.unpacked_path)
 
-            self.update_progress('Download/Unpack:', 100)
-            self._log.info('')
-            self._log.info('Done!')
+        output_path = self._config.output_path
 
-            if self._config.lock_on_success:
-                from crosspm.helpers.locker import Locker
-                depslock_path = os.path.realpath(
-                    os.path.join(os.path.dirname(depslock_file_path), self._config.deps_lock_file_name))
-                Locker(self._config, do_load=self.do_load, recursive=self.recursive).lock_packages(
-                    depslock_file_path, depslock_path, packages=self._root_package.packages)
+        if output_path is not None and output_path != '':
+            pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-        return self._root_package.all_packages
+
+        for package_path in packages_path_in_repo:
+            for src in self._config.sources():
+                session.auth = src.get_auth_params().auth
+                packages = src.generate_full_urls_from_package_path_in_repo(package_path)
+
+                # packages = self.find_package_in_artifactory(src, package)
+                for p in packages:
+                    ap = ArtifactoryPath(p, session=session)
+
+                    with ap.open() as input, open(os.path.join(output_path, ap.name), "wb") as output:
+                        output.write(input.read())
+                    break
 
     def entrypoint(self, *args, **kwargs):
         self.download_packages(*args, **kwargs)

@@ -1,5 +1,5 @@
 from ordered_set import OrderedSet
-from operator import itemgetter, attrgetter
+
 
 class Bundle:
     def __init__(self, deps, packages_repo, trigger_package):

@@ -5,9 +5,9 @@ import logging
 import os
 import re
 import sys
+from collections import OrderedDict
 
 from jinja2 import Environment, FileSystemLoader
-from collections import OrderedDict
 
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser

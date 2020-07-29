@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-import copy
+import http.client
 import json
 import logging
-import http.client
-
 from collections import OrderedDict
 
 import requests
 from addict import Dict
 from artifactory import ArtifactoryPath
-from requests.auth import HTTPBasicAuth
 
+import crosspm.contracts.package
 from crosspm.adapters import artifactoryaql
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
-import crosspm.contracts.package
 from crosspm.helpers.package import Package
 
 PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'c.'
@@ -47,7 +44,7 @@ class Adapter(artifactoryaql.Adapter):
         requests_log.setLevel(logging.DEBUG)
         requests_log.propagate = True
 
-        _art_auth_etc = self.get_auth_params(list_or_file_path, source)
+        _art_auth_etc = source.get_auth_params()
 
         _pkg_name_column = self._config.name_column
         _secret_variables = self._config.secret_variables
@@ -190,25 +187,14 @@ class Adapter(artifactoryaql.Adapter):
                     last_error = msg
         return package_versions_with_contracts
 
-    def get_auth_params(self, list_or_file_path, source):
-        _auth_type = source.args['auth_type'].lower() if 'auth_type' in source.args else 'simple'
-        _art_auth_etc = {}
-        if 'auth' in source.args:
-            self.search_auth(list_or_file_path, source)
-            if _auth_type == 'simple':
-                _art_auth_etc['auth'] = HTTPBasicAuth(*tuple(source.args['auth']))
-                session.auth = _art_auth_etc['auth']
-                # elif _auth_type == 'cert':
-                #     _art_auth_etc['cert'] = os.path.realpath(os.path.expanduser(source.args['auth']))
-        if 'auth' not in _art_auth_etc:
-            msg = 'You have to set auth parameter for sources with artifactory-aql adapter'
-            # self._log.error(msg)
-            raise CrosspmException(
-                CROSSPM_ERRORCODE_ADAPTER_ERROR,
-                msg
-            )
-        if 'verify' in source.args:
-            _art_auth_etc['verify'] = source.args['verify'].lower in ['true', 'yes', '1']
-        else:
-            _art_auth_etc['verify'] = False
-        return _art_auth_etc
+    # def find_package_in_repo_by_fullname(self, source, package_fullname):
+    #
+    #     return
+
+    def download_package(self, source, package_fullname, package_local_fullpath):
+        packages = self.find_package_versions(self.get_auth(source), package_fullname, '', {}, last_error, self.parser,
+                                              {})
+
+        with packages[0].art_path.open() as fd, open(package_local_fullpath, "wb") as out:
+            out.write(fd.read())
+
