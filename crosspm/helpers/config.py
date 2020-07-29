@@ -70,7 +70,7 @@ factory_parser = FactoryParser()
 class Config:
     windows = WINDOWS
 
-    def __init__(self, config_file_name='', cmdline='', no_fails=False, depslock_path='', deps_path='',
+    def __init__(self, config_file_name='', cmdline='', no_fails=False, output_path='', depslock_path='', deps_path='',
                  lock_on_success=False, prefer_local=False):
         self._log = logging.getLogger('crosspm')
         self._config_path_env = []
@@ -96,7 +96,7 @@ class Config:
         self.cache_config = {}
         self.init_env_config_path()
         self.secret_variables = []
-
+        self.output_path = output_path
         cpm_conf_name = ''
         if deps_path:
             if deps_path.__class__ is DependenciesContent:

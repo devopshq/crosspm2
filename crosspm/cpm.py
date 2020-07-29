@@ -31,6 +31,7 @@ Options:
     --out-format=TYPE                    Output data format. Available formats:({out_format}) [default: {out_format_default}]
     --output=FILE                        Output file name (required if --out_format is not stdout)
     --output-template=FILE               Template path, e.g. nuget.packages.config.j2 (required if --out_format=jinja)
+    --output-path=PATH                   Path to download files to when download command set [''] 
     --no-fails                           Ignore fails config if possible.
     --recursive=VALUE                    Process all packages recursively to find and lock all dependencies
     --prefer-local                       Do not search package if exist in cache
@@ -217,9 +218,12 @@ class CrossPM:
         if not _depslock_path:
             _depslock_path = _deps_path + '.lock'
 
-        self._config = Config(self._args['--config'], self._args['--options'], self._args['--no-fails'], _depslock_path,
-                              _deps_path, self._args['--lock-on-success'],
-                              self._args['--prefer-local'])
+        self._config = Config(self._args['--config'], self._args['--options'], self._args['--no-fails'],
+                              self._args['--output-path'],
+                              _depslock_path, _deps_path,
+                              self._args['--lock-on-success'], self._args['--prefer-local'])
+
+
         self._output = Output(self._config.output('result', None), self._config.name_column, self._config)
 
     def exit(self, code, msg):

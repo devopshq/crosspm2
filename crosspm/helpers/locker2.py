@@ -2,7 +2,8 @@
 from crosspm.helpers.locker import Locker
 
 from crosspm.helpers.parser2 import Parser2
-from crosspm.output_formatters.deps_txt_lock import DepsTxtLockFormatter
+from crosspm.output_formatters.deps_txt_lock_table_formatter import DepsTxtLockTableFormatter
+from output_formatters.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
 
 
 class Locker2(Locker):
@@ -28,7 +29,9 @@ class Locker2(Locker):
 
         self._log.info('Writing lock file [{}]'.format(depslock_file_path))
 
-        DepsTxtLockFormatter.write(depslock_file_path, self._root_package.packages)
+        # DepsTxtLockTableFormatter.write(depslock_file_path, self._root_package.packages)
+
+        DepsTxtLockListFormatter.write_packages_to_lock_file(depslock_file_path, self._root_package.packages)
 
         self._log.info('Done!')
 

@@ -1,6 +1,6 @@
 from tabulate import tabulate
 
-class DepsTxtLockFormatter:
+class DepsTxtLockTableFormatter:
     def __init__(self):
         pass
 
