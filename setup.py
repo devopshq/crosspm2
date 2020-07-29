@@ -64,6 +64,10 @@ setup(
         "crosspm.helpers",
         "crosspm.adapters",
         "crosspm.template",
+        "crosspm.contracts",
+        "crosspm.deps_txt_parsers",
+        "crosspm.output_formatters",
+        "crosspm.package_parsers"
     ],
     setup_requires=[
         "wheel==0.34.2",
