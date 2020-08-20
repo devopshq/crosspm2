@@ -141,6 +141,8 @@ class Adapter(artifactoryaql.Adapter):
 
                 _mark = 'found'
                 _matched, _params, _params_raw = parser.validate_path(str(_repo_path), _tmp_params)
+                self._log.info('_matched:{}, _params:{}, _params_raw:{}, _repo_path'.format(_matched, _params, _params_raw, str(_repo_path)))
+
                 if _matched:
                     contracts = self.parse_contracts_from_items_find_results(_found.properties)
 
@@ -156,7 +158,7 @@ class Adapter(artifactoryaql.Adapter):
 
                     _mark = 'valid'
 
-                self._log.debug('  {}: {}'.format(_mark, str(_repo_path)))
+                self._log.info('  {}: {}'.format(_mark, str(_repo_path)))
         except RuntimeError as e:
             try:
                 err = json.loads(e.args[0])
