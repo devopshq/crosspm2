@@ -1,6 +1,6 @@
 import dateutil
 
-from crosspm.contracts.contracts import Contract
+from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
 
 
