@@ -8,6 +8,8 @@ import sys
 import requests
 import yaml
 
+from crosspm.adapters.artifactoryaql import ArtifactoryAql
+from crosspm.adapters.artifactoryaql2 import ArtifactoryAql2
 from crosspm.helpers.cache import Cache
 from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
@@ -63,8 +65,26 @@ class FactoryParser:
         parser_cls = self.parsers[name]
         return parser_cls(name, data, config)
 
+#
+# class FactoryAdapter:
+#     def __init__(self):
+#         self.adapters = {}
+#         self.register_adapter('artifactory-aql', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory-aql', ArtifactoryAql)
+#         self.register_adapter('artifactory', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory-aql2', ArtifactoryAql2)
+#
+#     def register_adapter(self, name, adapter_cls):
+#         self.adapters[name] = adapter_cls
+#
+#     def create(self, name, data, config):
+#         adapter_cls = self.adapters[name]
+#         return adapter_cls(name, data, config)
+
 
 factory_parser = FactoryParser()
+# factory_adapter = FactoryAdapter()
 
 
 class Config:
@@ -612,44 +632,12 @@ class Config:
         return self._parsers[parser_name] if parser_name in self._parsers else None
 
     def init_adapters(self, types):
-        if not os.path.isdir(CROSSPM_ADAPTERS_DIR):
-            code = CROSSPM_ERRORCODE_ADAPTER_ERROR
-            msg = 'Adapters directory does not found!'
-            self._log.exception(msg)
-            raise CrosspmException(code, msg)
 
-        _cwd = os.getcwd()
-        _base_dir = os.path.dirname(CROSSPM_ROOT_DIR)
-        _adapters_app = '.'.join(os.path.split(os.path.relpath(CROSSPM_ADAPTERS_DIR, _base_dir)))
-        os.chdir(_base_dir)
-        _remove = False
-        if _base_dir not in sys.path:
-            sys.path.insert(0, _base_dir)
-            _remove = True
-
-        for _file_name in os.listdir(CROSSPM_ADAPTERS_DIR):
-            if _file_name.startswith(('__', 'common',)):
-                continue
-
-            _app_file_name, _ext = os.path.splitext(_file_name)
-            if not _ext.startswith('.py'):
-                continue
-            _app_name = '.'.join((_adapters_app, _app_file_name,))
-
-            try:
-                _temp = __import__(_app_name, globals(), locals(), ['setup', 'Adapter'], 0)
-                _names = _temp.setup['name']
-                if isinstance(_names, str):
-                    _names = [_names]
-                self._adapters.update({k: _temp.Adapter(self) for k in _names if k in types})
-
-            except Exception as e:
-                msg = 'Error initializing adapter {}: [{}]'.format(_file_name, e)
-                self._log.error(msg)
-
-        if _remove:
-            sys.path.remove(_base_dir)
-        os.chdir(_cwd)
+        self._adapters['jfrog-artifactory-aql2'] = ArtifactoryAql2(self)
+        self._adapters['artifactory-aql'] = ArtifactoryAql(self)
+        self._adapters['jfrog-artifactory-aql'] = ArtifactoryAql(self)
+        self._adapters['artifactory'] = ArtifactoryAql(self)
+        self._adapters['jfrog-artifactory'] = ArtifactoryAql(self)
 
     @staticmethod
     def parse_options(options, cmdline, check_default=False):

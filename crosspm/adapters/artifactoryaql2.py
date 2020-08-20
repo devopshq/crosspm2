@@ -9,7 +9,7 @@ from addict import Dict
 from artifactory import ArtifactoryPath
 
 import crosspm.contracts.package
-from crosspm.adapters import artifactoryaql
+from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
@@ -26,7 +26,7 @@ setup = {
 session = requests.Session()
 
 
-class Adapter(artifactoryaql.Adapter):
+class ArtifactoryAql2(ArtifactoryAql):
     def get_packages(self, source, parser, downloader, list_or_file_path, property_validate=True):
         """
 
