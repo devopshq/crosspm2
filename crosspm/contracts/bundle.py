@@ -1,3 +1,4 @@
+import logging
 from ordered_set import OrderedSet
 
 
@@ -6,6 +7,8 @@ class Bundle:
         # it is vital for deps to be list, orderedset (or something with insertion order savings),
         # we need the order of packages in dependencies.txt to take next package
         # when no contracts satisfied
+        self._log = logging.getLogger('crosspm')
+
         self._deps = OrderedSet(deps)
         self._packages_repo = sorted(packages_repo, reverse=True)
         self._trigger_package = trigger_package
@@ -15,6 +18,8 @@ class Bundle:
 
     def calculate(self):
 
+        self._log.info('trigger_package: {}'.format(self._trigger_package))
+        self._log.info('packages_repo: {}'.format(self._packages_repo))
         if self._trigger_package:
             self._packages[self._trigger_package.name] = self._trigger_package
 

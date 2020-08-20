@@ -100,7 +100,8 @@ setup(
         "packaging>=20.4",  # need for crosspm2 contract scheme
         "parse>=1.15.0",  # need for crosspm2 contract scheme
         "tabulate>=0.8.7",  # need for crosspm2 contract scheme
-        "ordered-set>=4.0.2",
+        "ordered-set>=4.0.2",mc
+        
     ],
     package_data={
         "": [
