@@ -1,7 +1,7 @@
 import dateutil
 
-from contracts.contracts import Contract
-from contracts.package_version import PackageVersion
+from crosspm.contracts.contracts import Contract
+from crosspm.contracts.package_version import PackageVersion
 
 
 class Package:
