@@ -1,6 +1,6 @@
 import pytest
 
-from package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class TestTadPackage:

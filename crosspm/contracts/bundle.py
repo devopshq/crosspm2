@@ -1,4 +1,4 @@
-from ordered_set import OrderedSet
+import ordered_set
 
 
 class Bundle:
@@ -6,7 +6,7 @@ class Bundle:
         # it is vital for deps to be list, orderedset (or something with insertion order savings),
         # we need the order of packages in dependencies.txt to take next package
         # when no contracts satisfied
-        self._deps = OrderedSet(deps)
+        self._deps = ordered_set.OrderedSet(deps)
         self._packages_repo = sorted(packages_repo, reverse=True)
         self._trigger_package = trigger_package
 

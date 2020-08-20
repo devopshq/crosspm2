@@ -1,4 +1,4 @@
-from contracts.contracts import Contract
+from crosspm.contracts.contract import Contract
 
 
 class TestContract():
