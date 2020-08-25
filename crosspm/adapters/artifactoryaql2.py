@@ -75,7 +75,7 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         package_names = [x[self._config.name_column] for x in list_or_file_path['raw']]
 
-        bundle = Bundle(package_names, repo_returned_packages_all, None)
+        bundle = Bundle(package_names, repo_returned_packages_all, downloader._config.trigger_package)
 
         bundle_packages = bundle.calculate().values()
         for p in bundle_packages:
