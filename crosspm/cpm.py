@@ -35,7 +35,7 @@ Options:
     --no-fails                           Ignore fails config if possible.
     --recursive=VALUE                    Process all packages recursively to find and lock all dependencies
     --prefer-local                       Do not search package if exist in cache
-    --trigger_package                    ContractScheme. Package fullname and version, that triggers the build. This package must include into bundle or fail the build.
+    --trigger-package                    ContractScheme. Package fullname and version, that triggers the build. This package must include into bundle or fail the build.
     --stdout                             Print info and debug message to STDOUT, error to STDERR. Otherwise - all messages to STDERR
 
 """  # noqa
