@@ -2,7 +2,7 @@ import dateutil
 
 from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
-from package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class Package:
