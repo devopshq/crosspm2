@@ -2,6 +2,8 @@ import logging
 
 from ordered_set import OrderedSet
 
+from helpers.exceptions import CrosspmExceptionWrongArgs
+
 
 class Bundle:
     def __init__(self, deps, packages_repo, trigger_package):
@@ -12,10 +14,22 @@ class Bundle:
 
         self._deps = OrderedSet(deps)
         self._packages_repo = sorted(packages_repo, reverse=True)
-        self._trigger_package = trigger_package
+
+        self._trigger_package = None
+        if trigger_package:
+            self._trigger_package = Bundle.find_trigger_package_in_packages_repo(trigger_package, self._packages_repo)
 
         self._packages = dict()
         self._bundle_contracts = {}
+
+    @staticmethod
+    def find_trigger_package_in_packages_repo(trigger_package, repo_packages):
+
+        for p in repo_packages:
+            if p == trigger_package:
+                return p
+
+        raise CrosspmExceptionWrongArgs(f"trigger_package = <{trigger_package}> NOT FOUND in repo_packages : {repo_packages}")
 
     def calculate(self):
 

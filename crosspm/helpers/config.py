@@ -16,6 +16,7 @@ from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser
 from crosspm.helpers.parser2 import Parser2
 from crosspm.helpers.source import Source
+import crosspm.contracts.package
 
 requests.packages.urllib3.disable_warnings()
 
@@ -110,7 +111,10 @@ class Config:
         self.deps_lock_file_name = ''
         self.lock_on_success = lock_on_success
         self.prefer_local = prefer_local
-        self.trigger_package = trigger_package
+        if trigger_package:
+            self.trigger_package = crosspm.contracts.package.Package.create_package_debian(trigger_package)
+        else:
+            self.trigger_package = None
         self.crosspm_cache_root = ''
         self.deps_path = ''
         self.depslock_path = ''

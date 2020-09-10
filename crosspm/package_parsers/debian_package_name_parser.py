@@ -1,5 +1,7 @@
 from parse import compile
 
+from helpers.exceptions import CrosspmExceptionWrongArgs
+
 DEBIAN_PACKAGENAME_PATTERN = compile('{}_{}_{}.deb')
 
 # https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html
@@ -18,9 +20,14 @@ class DebianPackageNameParser:
 
     @classmethod
     def parse_from_package_name(cls, package_name):
-        package, fullversion, arch = DEBIAN_PACKAGENAME_PATTERN.parse(package_name)
-        version, sep, revision = fullversion.partition('-')
-        return DebianPackageNameParser(package, version, revision, arch)
+
+        try:
+            package, fullversion, arch = DEBIAN_PACKAGENAME_PATTERN.parse(package_name)
+            version, sep, revision = fullversion.partition('-')
+            return DebianPackageNameParser(package, version, revision, arch)
+        except TypeError:
+            raise CrosspmExceptionWrongArgs(f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
+
 
     def __str__(self):
         return self.fullname

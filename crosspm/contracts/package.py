@@ -2,6 +2,7 @@ import dateutil
 
 from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
+from package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class Package:
@@ -69,6 +70,13 @@ class Package:
             return Package(package[0], str(package[1]), Package.create_contracts(package[2]))
 
         return Package(package[0], str(package[1]), Package.create_contracts([]))
+
+    @staticmethod
+    def create_package_debian(package_name):
+
+        p = DebianPackageNameParser.parse_from_package_name(package_name)
+
+        return Package.create_package((p.package, p.version))
 
     @staticmethod
     def create_packages(*packages):
