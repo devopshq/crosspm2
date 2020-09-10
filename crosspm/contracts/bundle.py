@@ -33,6 +33,7 @@ class Bundle:
 
     def calculate(self):
 
+        self._log.info('deps: {}'.format(self._deps))
         self._log.info('trigger_package: {}'.format(self._trigger_package))
         self._log.info('packages_repo: {}'.format(self._packages_repo))
         if self._trigger_package:
