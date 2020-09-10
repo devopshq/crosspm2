@@ -2,7 +2,7 @@ import logging
 
 from ordered_set import OrderedSet
 
-from crosspm.helpers.exceptions import CrosspmExceptionWrongArgs
+from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND
 
 
 class Bundle:
@@ -29,7 +29,7 @@ class Bundle:
             if p == trigger_package:
                 return p
 
-        raise CrosspmExceptionWrongArgs(f"trigger_package = <{trigger_package}> NOT FOUND in repo_packages : {repo_packages}")
+        raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, f"trigger_package = <{trigger_package}> NOT FOUND in repo_packages : {repo_packages}")
 
     def calculate(self):
 

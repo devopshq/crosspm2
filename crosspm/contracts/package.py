@@ -16,7 +16,7 @@ class Package:
         return hash(str(self.name) + str(self.version))
 
     def __str__(self):
-        return "{}.{}({})".format(self.name, self.version, ",".join(str(s) for s in self.contracts.values()))
+        return "{}.{}({})".format(self.name, self.version, ",".join(str(s[1]) for s in sorted(self.contracts.items())))
 
     def __repr__(self):
         return str(self)

@@ -19,14 +19,14 @@ class Parser2(Parser):
     def validate_path(self, path, params):
         p = PurePath(path)
         debian_package = DebianPackageNameParser.parse_from_package_name(p.name)
-        package_version = PackageVersion(debian_package.version)
+        package_version = PackageVersion(debian_package.fullversion)
 
         res_params = Dict()
         res_params.update(params)
         res_params.version = package_version.release
 
         res_params_raw = Dict()
-        res_params_raw.version = debian_package.version
+        res_params_raw.version = debian_package.fullversion
 
         return True, res_params, res_params_raw
 
