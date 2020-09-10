@@ -76,7 +76,7 @@ class Package:
 
         p = DebianPackageNameParser.parse_from_package_name(package_name)
 
-        return Package.create_package((p.package, p.version))
+        return Package.create_package((p.package, p.fullversion))
 
     @staticmethod
     def create_packages(*packages):

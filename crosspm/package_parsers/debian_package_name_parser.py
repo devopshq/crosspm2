@@ -37,4 +37,8 @@ class DebianPackageNameParser:
 
     @property
     def fullname(self):
-        return "{}_{}_{}.deb".format(self.package, self.version, self.arch)
+        return "{}_{}_{}.deb".format(self.package, self.fullversion, self.arch)
+
+    @property
+    def fullversion(self):
+        return f"{self.version}-{self.revision}"
