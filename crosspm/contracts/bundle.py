@@ -2,7 +2,7 @@ import logging
 
 from ordered_set import OrderedSet
 
-from helpers.exceptions import CrosspmExceptionWrongArgs
+from crosspm.helpers.exceptions import CrosspmExceptionWrongArgs
 
 
 class Bundle:

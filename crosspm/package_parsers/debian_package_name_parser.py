@@ -1,6 +1,6 @@
 from parse import compile
 
-from helpers.exceptions import CrosspmExceptionWrongArgs
+from crosspm.helpers.exceptions import CrosspmExceptionWrongArgs
 
 DEBIAN_PACKAGENAME_PATTERN = compile('{}_{}_{}.deb')
 
