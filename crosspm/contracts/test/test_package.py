@@ -1,3 +1,8 @@
+from crosspm.contracts.package import Package
+
+def test_debain_package():
+    assert Package.create_package_debian("tad-db_1.2.3-123_all.deb") > Package.create_package_debian("tad-db_1.2.3_all.deb")
+
 # def test_is_microservice(self):
 #     assert False
 #

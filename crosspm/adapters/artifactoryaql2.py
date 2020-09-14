@@ -14,7 +14,7 @@ from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
 
-PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'c.'
+PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'contracts.'
 CHUNK_SIZE = 1024
 
 setup = {
