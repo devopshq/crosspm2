@@ -146,7 +146,7 @@ class ArtifactoryAql2(ArtifactoryAql):
                 self._log.info('_matched:{}, _params:{}, _params_raw:{}, _repo_path:{}'.format(_matched, _params, _params_raw, str(_repo_path)))
 
                 if _matched:
-                    contracts = self.parse_contracts_from_items_find_results()
+                    contracts = self.parse_contracts_from_items_find_results(_found.properties)
 
                     package_with_contracts = crosspm.contracts.package.ArtifactoryPackage(_params.package,
                                                                                           _params_raw.version,
