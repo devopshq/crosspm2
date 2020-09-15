@@ -89,12 +89,13 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         return _packages_found
 
-    def parse_contracts_from_items_find_results(self, properties):
+    @staticmethod
+    def parse_contracts_from_items_find_results(properties):
         contracts = Dict()
 
         for p in properties:
             if p.key.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
-                contracts[p.key] = p.value[0]
+                contracts[p.key] = p.value
 
         return contracts
 
@@ -145,7 +146,7 @@ class ArtifactoryAql2(ArtifactoryAql):
                 self._log.info('_matched:{}, _params:{}, _params_raw:{}, _repo_path:{}'.format(_matched, _params, _params_raw, str(_repo_path)))
 
                 if _matched:
-                    contracts = self.parse_contracts_from_items_find_results(_found.properties)
+                    contracts = self.parse_contracts_from_items_find_results()
 
                     package_with_contracts = crosspm.contracts.package.ArtifactoryPackage(_params.package,
                                                                                           _params_raw.version,
