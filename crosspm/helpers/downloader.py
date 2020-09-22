@@ -168,8 +168,8 @@ class Downloader(Command):
 
                         self._log.info(f"Success {ap} downloaded to {dst_path}")
 
-
                         break
+
                     except RuntimeError as e:
                         errors[ap] = e
 
