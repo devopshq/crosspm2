@@ -144,17 +144,38 @@ class Downloader(Command):
 
 
         for package_path in packages_path_in_repo:
+
+            package_download_done = False
+
+            errors = {}
+
             for src in self._config.sources():
+                if package_download_done:
+                    break;
+
                 session.auth = src.get_auth_params().auth
                 packages = src.generate_full_urls_from_package_path_in_repo(package_path)
 
                 # packages = self.find_package_in_artifactory(src, package)
                 for p in packages:
-                    ap = ArtifactoryPath(p, session=session)
+                    try:
+                        ap = ArtifactoryPath(p, session=session)
+                        dst_path = os.path.join(output_path, ap.name)
+                        with ap.open() as input, open(dst_path, "wb") as output:
+                            output.write(input.read())
 
-                    with ap.open() as input, open(os.path.join(output_path, ap.name), "wb") as output:
-                        output.write(input.read())
-                    break
+                        package_download_done = True
+
+                        self._log.info(f"Success {ap} downloaded to {dst_path}")
+
+
+                        break
+                    except RuntimeError as e:
+                        errors[ap] = e
+
+            if not package_download_done:
+                raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, f"FAILED {ap} downloaded. Errors {errors}")
+
 
     def entrypoint(self, *args, **kwargs):
         self.download_packages(*args, **kwargs)
