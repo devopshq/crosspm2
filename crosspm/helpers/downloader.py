@@ -2,6 +2,7 @@
 import logging
 import os
 import pathlib
+import shutil
 from collections import OrderedDict, defaultdict
 
 import requests
@@ -162,7 +163,7 @@ class Downloader(Command):
                         ap = ArtifactoryPath(p, session=session)
                         dst_path = os.path.join(output_path, ap.name)
                         with ap.open() as input, open(dst_path, "wb") as output:
-                            output.write(input.read())
+                            shutil.copyfileobj(input, output)
 
                         package_download_done = True
 
