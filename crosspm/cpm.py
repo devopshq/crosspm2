@@ -46,6 +46,7 @@ import shlex
 import sys
 import time
 
+import requests
 from docopt import docopt
 
 from crosspm import version
@@ -289,20 +290,12 @@ class CrossPM:
             formatter = logging.Formatter(format_str, datefmt="%Y-%m-%d %H:%M:%S")
 
             if level:
-                # legacy way - Cmake catch message from stdout and parse PACKAGE_ROOT
-                # So, crosspm print debug and info message to stderr for debug purpose
-                if not self.stdout:
-                    sh = logging.StreamHandler(stream=sys.stderr)
-                    sh.setLevel(level)
-                    self._log.addHandler(sh)
-                # If --stdout flag enabled
-                else:
-                    sh = logging.StreamHandler(stream=sys.stderr)
-                    sh.setLevel(logging.WARNING)
-                    self._log.addHandler(sh)
-                    sh = logging.StreamHandler(stream=sys.stdout)
-                    sh.setLevel(level)
-                    self._log.addHandler(sh)
+                sh = logging.StreamHandler(stream=sys.stderr)
+                sh.setLevel(logging.WARNING)
+                self._log.addHandler(sh)
+                sh = logging.StreamHandler(stream=sys.stdout)
+                sh.setLevel(level)
+                self._log.addHandler(sh)
 
             if log_abs:
                 if not level_str:

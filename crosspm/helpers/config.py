@@ -755,7 +755,7 @@ class Config:
             return ', '.join(x[0] for x in levels)
 
         if level == 'console':
-            level = 'debug'
+            level = 'info'
 
         default = None
         for x in levels:

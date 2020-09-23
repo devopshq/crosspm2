@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import http
 import logging
 import os
 import pathlib
@@ -22,7 +23,7 @@ class Command(object):
 
 
 class Downloader(Command):
-    def __init__(self, config, do_load, recursive, parser_class = Parser):
+    def __init__(self, config, do_load, recursive, parser_class=Parser):
         self._log = logging.getLogger('crosspm')
         self._config = config  # type: Config
         self.cache = config.cache
@@ -133,26 +134,23 @@ class Downloader(Command):
     def download_packages(self):
         packages_path_in_repo = DepsTxtLockListFormatter.read_packages_from_lock_file(self._config.depslock_path)
 
-        last_error = []
-
         session = requests.Session()
 
+        packages_not_found = []
 
         output_path = self._config.output_path
 
         if output_path is not None and output_path != '':
             pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-
         for package_path in packages_path_in_repo:
 
-            package_download_done = False
-
             errors = {}
+            package_download_done = False
 
             for src in self._config.sources():
                 if package_download_done:
-                    break;
+                    break
 
                 session.auth = src.get_auth_params().auth
                 packages = src.generate_full_urls_from_package_path_in_repo(package_path)
@@ -162,6 +160,7 @@ class Downloader(Command):
                     try:
                         ap = ArtifactoryPath(p, session=session)
                         dst_path = os.path.join(output_path, ap.name)
+
                         with ap.open() as input, open(dst_path, "wb") as output:
                             shutil.copyfileobj(input, output)
 
@@ -172,10 +171,18 @@ class Downloader(Command):
                         break
 
                     except RuntimeError as e:
-                        errors[ap] = e
+                        if isinstance(e.args[0], int):
+                            errors[ap] = http.HTTPStatus(e.args[0])
+                        else:
+                            errors[ap] = e
 
             if not package_download_done:
-                raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, f"FAILED {ap} downloaded. Errors {errors}")
+                packages_not_found += [package_path]
+                self._log.error(f"PACKAGE NOT FOUND {package_path}. Errors for attempts {errors}")
+
+        if packages_not_found:
+            raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND,
+                'Some package(s) not found: {}'.format(', '.join(packages_not_found)))
 
 
     def entrypoint(self, *args, **kwargs):
@@ -185,10 +192,6 @@ class Downloader(Command):
         self._log.info('Check dependencies ...')
         self._root_package.find_dependencies(depslock_file_path, property_validate=True, deps_content=deps_content, )
         self._log.info('')
-        self.set_duplicated_flag()
-        self._log.info('Dependency tree:')
-        self._root_package.print(0, self._config.output('tree', [{self._config.name_column: 0}]))
-        self.check_unique(self._config.no_fails)
         self.check_not_found()
 
     def check_not_found(self):
@@ -207,48 +210,6 @@ class Downloader(Command):
         if package is not None:
             _added = True
         return _added, package
-
-    def set_duplicated_flag(self):
-        """
-        For all package set flag duplicated, if it's not unique package
-        :return:
-        """
-        package_by_name = defaultdict(list)
-
-        for package1 in self._root_package.all_packages:
-            if package1 is None:
-                continue
-            pkg_name = package1.package_name
-            param_list = self._config.get_fails('unique', {})
-            params1 = package1.get_params(param_list)
-            for package2 in package_by_name[pkg_name]:
-                params2 = package2.get_params(param_list)
-                for x in param_list:
-                    # START HACK for cached archive
-                    param1 = params1[x]
-                    param2 = params2[x]
-                    if isinstance(param1, list):
-                        param1 = [str(x) for x in param1]
-                    if isinstance(param2, list):
-                        param2 = [str(x) for x in param2]
-                    # END
-
-                    if str(param1) != str(param2):
-                        package1.duplicated = True
-                        package2.duplicated = True
-            package_by_name[pkg_name].append(package1)
-
-    def check_unique(self, no_fails):
-        if no_fails:
-            return
-        not_unique = set(x.package_name for x in self._root_package.all_packages if x and x.duplicated)
-        if not_unique:
-            raise CrosspmException(
-                CROSSPM_ERRORCODE_MULTIPLE_DEPS,
-                'Multiple versions of package "{}" found in dependencies.\n'
-                'See dependency tree in log (package with exclamation mark "!")'.format(
-                    ', '.join(not_unique)),
-            )
 
     def get_raw_packages(self):
         """
