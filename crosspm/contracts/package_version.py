@@ -38,8 +38,9 @@ class PackageVersion(Version):
     _regex = re.compile(r"^\s*" + CROSSPM_VERSION_PATTERN + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
     def __init__(self, version):
-        super(PackageVersion, self).__init__(version)
         self._version_original_str = version
+        super(PackageVersion, self).__init__(version)
+
 
     # cant use base Version.__str__, because 'local' placeholder normalized, and all '[-_]' are changed with '.'
     def __str__(self):

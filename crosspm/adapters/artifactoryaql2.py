@@ -4,11 +4,13 @@ import json
 import logging
 from collections import OrderedDict
 
+import packaging
 import requests
 from addict import Dict
 from artifactory import ArtifactoryPath
 
 import crosspm.contracts.package
+from crosspm import InvalidPackage
 from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
@@ -63,10 +65,11 @@ class ArtifactoryAql2(ArtifactoryAql):
             self._log.info('repo: {}'.format(_tmp_params.repo))
 
             _path_fixed, _path_pattern, _file_name_pattern = parser.split_fixed_pattern_with_file_name(_path.path)
-            _package_versions_with_contracts = self.find_package_versions(_art_auth_etc, _file_name_pattern,
-                                                                          _path_pattern, _tmp_params,
-                                                                          last_error,
-                                                                          parser, _tmp_params)
+            _package_versions_with_contracts, packages_with_invalid_naming_convension = \
+                self.find_package_versions(_art_auth_etc, _file_name_pattern,
+                                           _path_pattern, _tmp_params,
+                                           last_error,
+                                           parser, _tmp_params)
 
             _package = None
 
@@ -102,6 +105,7 @@ class ArtifactoryAql2(ArtifactoryAql):
     def find_package_versions(self, _art_auth_etc, _file_name_pattern,
                               _path_pattern, _tmp_params, last_error, parser, paths_params):
         try:
+            packages_with_invalid_naming_convension = []
             package_versions_with_contracts = []
             _artifactory_server = _tmp_params.server
             _search_repo = _tmp_params.repo
@@ -142,25 +146,34 @@ class ArtifactoryAql2(ArtifactoryAql):
                 _repo_path = ArtifactoryPath(_repo_path, **_art_auth_etc)
 
                 _mark = 'found'
-                _matched, _params, _params_raw = parser.validate_path(str(_repo_path), _tmp_params)
-                self._log.debug('_matched:{}, _params:{}, _params_raw:{}, _repo_path:{}'.format(_matched, _params, _params_raw, str(_repo_path)))
 
-                if _matched:
-                    contracts = self.parse_contracts_from_items_find_results(_found.properties)
+                try:
+                    _matched, _params, _params_raw = parser.validate_path(str(_repo_path), _tmp_params)
+                    self._log.debug(
+                        '_matched:{}, _params:{}, _params_raw:{}, _repo_path:{}'.format(_matched, _params, _params_raw,
+                                                                                        str(_repo_path)))
 
-                    package_with_contracts = crosspm.contracts.package.ArtifactoryPackage(_params.package,
-                                                                                          _params_raw.version,
-                                                                                          contracts, _repo_path,
-                                                                                          _params, _params_raw,
-                                                                                          paths_params,
-                                                                                          _found
-                                                                                          )
+                    if _matched:
+                        contracts = self.parse_contracts_from_items_find_results(_found.properties)
 
-                    package_versions_with_contracts.append(package_with_contracts)
+                        package_with_contracts = crosspm.contracts.package.ArtifactoryPackage(_params.package,
+                                                                                              _params_raw.version,
+                                                                                              contracts, _repo_path,
+                                                                                              _params, _params_raw,
+                                                                                              paths_params,
+                                                                                              _found
+                                                                                              )
 
-                    _mark = 'valid'
+                        package_versions_with_contracts.append(package_with_contracts)
 
-                self._log.info('  {}: {}'.format(_mark, str(_repo_path)))
+                        _mark = 'valid'
+
+                        self._log.info('  {}: {}'.format(_mark, str(_repo_path)))
+
+                except packaging.version.InvalidVersion as e:
+                    packages_with_invalid_naming_convension.append(InvalidPackage(_repo_path, e))
+                    self._log.warn(f"{e} for {_repo_path}")
+
         except RuntimeError as e:
             try:
                 err = json.loads(e.args[0])
@@ -189,7 +202,8 @@ class ArtifactoryAql2(ArtifactoryAql):
                     if last_error != msg:
                         self._log.error(msg)
                     last_error = msg
-        return package_versions_with_contracts
+
+        return package_versions_with_contracts, packages_with_invalid_naming_convension
 
     # def find_package_in_repo_by_fullname(self, source, package_fullname):
     #
@@ -201,4 +215,3 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         with packages[0].art_path.open() as fd, open(package_local_fullpath, "wb") as out:
             out.write(fd.read())
-

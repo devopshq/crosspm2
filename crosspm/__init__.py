@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from collections import namedtuple
+
 from crosspm.config import __version__
 
 version = str(__version__).split('.')
@@ -9,6 +11,8 @@ else:
         version = __version__
     else:
         version = '{} build {}'.format('.'.join(version[:3]), version[3])
+
+InvalidPackage = namedtuple('InvalidPackage', 'repo_path exception')
 
 # import not in top, because use version
 from crosspm.cpm import CrossPM  # noqa

@@ -29,7 +29,7 @@ session = requests.Session()
 
 
 class ArtifactoryAql(BaseAdapter):
-    def get_packages(self, source, parser, downloader, list_or_file_path, property_validate=True):
+    def get_packages(self, source, parser, dowссnloader, list_or_file_path, property_validate=True):
         """
 
         :param source:
