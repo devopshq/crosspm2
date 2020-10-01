@@ -64,7 +64,8 @@ class ArtifactoryAql2(ArtifactoryAql):
             aql = ArtifactoryPath(f"{_tmp_params.server}", session=session)
 
             _path_fixed, _path_pattern, _file_name_pattern = parser.split_fixed_pattern_with_file_name(_path.path)
-            _package_versions_with_contracts, packages_with_invalid_naming_convension = \
+
+            _package_versions_with_contracts, packages_with_invalid_naming_convention = \
                 self.find_package_versions(_file_name_pattern,
                                            _path_pattern,
                                            aql,
@@ -95,7 +96,7 @@ class ArtifactoryAql2(ArtifactoryAql):
     def find_package_versions(self, _file_name_pattern,
                               _path_pattern, aql, search_repo):
         try:
-            packages_with_invalid_naming_convension = []
+            packages_with_invalid_naming_convention = []
             package_versions_with_contracts = []
 
             query = self.prepare_aql_query(_file_name_pattern, _path_pattern, search_repo)
@@ -108,16 +109,16 @@ class ArtifactoryAql2(ArtifactoryAql):
 
                     package_versions_with_contracts.append(package_with_contracts)
 
-                    self._log.debug(f'  valid: {str(art_path)}')
+                    self._log.debug(f"  valid: {str(art_path)}")
 
                 except packaging.version.InvalidVersion as e:
-                    packages_with_invalid_naming_convension.append(InvalidPackage(art_path, e))
+                    packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
                     self._log.warn(f"{e} for {art_path}")
 
         except RuntimeError as e:
-            self.try_parse_http_error(e, last_error)
+            self.try_parse_http_error(e)
 
-        return package_versions_with_contracts, packages_with_invalid_naming_convension
+        return package_versions_with_contracts, packages_with_invalid_naming_convention
 
     def prepare_aql_query(self, _file_name_pattern, _path_pattern, _search_repo):
         # Get AQL path pattern, with fixed part path, without artifactory url and repository name
@@ -138,11 +139,11 @@ class ArtifactoryAql2(ArtifactoryAql):
         # Remove path if is empty string
         if not _aql_path_pattern:
             _aql_query_dict.pop('path')
-        query = 'items.find({query_dict}).include("*", "property")'.format(
-            query_dict=json.dumps(_aql_query_dict))
+        query = f'items.find({json.dumps(_aql_query_dict)}).include("*", "property")'
+
         return query
 
-    def try_parse_http_error(self, e, last_error):
+    def try_parse_http_error(self, e):
         try:
             err = json.loads(e.args[0])
         except Exception:
