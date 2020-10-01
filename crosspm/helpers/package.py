@@ -19,7 +19,7 @@ except ImportError:
 
 class Package:
     def __init__(self, name, pkg, art_package, params, downloader, adapter, parser,
-                 params_found=None, params_found_raw=None, stat=None, in_cache=False):
+                 params_found=None, params_found_raw=None, in_cache=False):
         self.name = name
         self.package_name = name
         self.packed_path = ''
@@ -54,7 +54,6 @@ class Package:
             self._params_found = params_found
         if params_found_raw:
             self._params_found_raw = params_found_raw
-        self.stat = stat
 
 
     def download(self, force=False):
@@ -156,6 +155,10 @@ class Package:
                 Archive.extract(self.packed_path, dest_path)  # temp_path)
                 self.unpacked_path = dest_path  # temp_path
                 self._not_cached = False
+
+    @property
+    def stat(self):
+        return self.art_package.pkg_stat()
 
     def pack(self, src_path):
         Archive.create(self.packed_path, src_path)

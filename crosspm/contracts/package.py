@@ -1,8 +1,13 @@
+from pathlib import PurePath
+
 import dateutil
+from addict import Dict
 
 from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
 from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
+
+PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'contracts.'
 
 
 class Package:
@@ -86,24 +91,40 @@ class Package:
 
         return res
 
+
+def create_artifactory_package(art_path):
+    contracts = parse_contracts_from_package_properties(art_path.properties)
+    debian_package = DebianPackageNameParser.parse_from_package_name(art_path.name)
+
+    return ArtifactoryPackage(art_path, debian_package.package, debian_package.fullversion, contracts)
+
+
+def parse_contracts_from_package_properties(properties):
+    contracts = Dict()
+
+    for p in properties:
+        if p.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
+            contracts[p] = properties[p]
+
+    return contracts
+
+
 class ArtifactoryPackage(Package):
-    def __init__(self, name, version, contracts, art_path, params, params_raw, paths_params, arti_item_find_results):
+    def __init__(self, art_path, name, version, contracts):
         super(ArtifactoryPackage, self).__init__(name, version,
                                                  Package.create_contracts_from_dict(contracts))
         self.art_path = art_path
-        self.params = params
-        self.params_raw = params_raw
-        self.paths_params = paths_params
-        self.arti_item_find_results = arti_item_find_results
+        self.stat_pkg = None
 
     def strisodate_to_timestamp(self, date):
         return dateutil.parser.parse(date).timestamp()
 
     def pkg_stat(self):
-        stat_pkg = {
-            'ctime': self.strisodate_to_timestamp(self.arti_item_find_results.created),
-            'mtime': self.strisodate_to_timestamp(self.arti_item_find_results.modified),
-            'size': int(self.arti_item_find_results.size)
-        }
-        return stat_pkg
-
+        if not self.stat_pkg:
+            stat = self.art_path.stat()
+            stat_pkg = {
+                'ctime': stat.ctime,
+                'mtime': stat.mtime,
+                'size': stat.size
+            }
+        return self.stat_pkg

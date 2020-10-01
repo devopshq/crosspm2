@@ -5,6 +5,7 @@ import os
 import platform
 import sys
 
+import packaging
 import requests
 import yaml
 
@@ -111,10 +112,15 @@ class Config:
         self.deps_lock_file_name = ''
         self.lock_on_success = lock_on_success
         self.prefer_local = prefer_local
-        if trigger_package:
-            self.trigger_package = crosspm.contracts.package.Package.create_package_debian(trigger_package)
-        else:
-            self.trigger_package = None
+
+        try:
+            if trigger_package:
+                self.trigger_package = crosspm.contracts.package.Package.create_package_debian(trigger_package)
+            else:
+                self.trigger_package = None
+        except packaging.version.InvalidVersion as e:
+            raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH, f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
+
         self.crosspm_cache_root = ''
         self.deps_path = ''
         self.depslock_path = ''

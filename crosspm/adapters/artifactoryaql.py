@@ -29,7 +29,7 @@ session = requests.Session()
 
 
 class ArtifactoryAql(BaseAdapter):
-    def get_packages(self, source, parser, dowссnloader, list_or_file_path, property_validate=True):
+    def get_packages(self, source, parser, downloader, list_or_file_path, property_validate=True):
         """
 
         :param source:
@@ -217,7 +217,7 @@ class ArtifactoryAql(BaseAdapter):
                         value = ['' if x is None else x for x in value]
                         _packed_cache_params[key] = value
                 _package = Package(_pkg_name, None, _paths['params'], downloader, self, parser,
-                                   _packed_cache_params, list_or_file_path['raw'], {}, in_cache=True)
+                                   _packed_cache_params, list_or_file_path['raw'], in_cache=True)
             # END HACK
             if _packages:
                 _tmp = copy.deepcopy(_params_found)
@@ -232,7 +232,7 @@ class ArtifactoryAql(BaseAdapter):
                     _params_tmp = _params_found.get(_packages[0]['path'], {})
                     _params_tmp.update({k: v for k, v in _packages[0]['params'].items() if k not in _params_tmp})
                     _package = Package(_pkg_name, _packages[0]['path'], _paths['params'], downloader, self, parser,
-                                       _params_tmp, _params_raw, _stat_pkg)
+                                       _params_tmp, _params_raw)
                     _mark = 'chosen'
                     self._log.info('  {}: {}'.format(_mark, str(_packages[0]['path'])))
 

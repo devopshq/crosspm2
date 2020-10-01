@@ -16,7 +16,6 @@ from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
 
-PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'contracts.'
 CHUNK_SIZE = 1024
 
 setup = {
@@ -40,7 +39,6 @@ class ArtifactoryAql2(ArtifactoryAql):
         we can skip validate part
         :return:
         """
-        # logging.basicConfig(level=logging.DEBUG)
         # http.client.HTTPConnection.debuglevel = 1
         # requests_log = logging.getLogger("requests.packages.urllib3")
         # requests_log.setLevel(logging.DEBUG)
@@ -59,17 +57,18 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         for _path in source.get_paths(list_or_file_path['raw']):
 
-            last_error = ''
-
             _tmp_params = Dict(_path.params)
             self._log.info('repo: {}'.format(_tmp_params.repo))
 
+            session.auth = _art_auth_etc['auth']
+            aql = ArtifactoryPath(f"{_tmp_params.server}", session=session)
+
             _path_fixed, _path_pattern, _file_name_pattern = parser.split_fixed_pattern_with_file_name(_path.path)
             _package_versions_with_contracts, packages_with_invalid_naming_convension = \
-                self.find_package_versions(_art_auth_etc, _file_name_pattern,
-                                           _path_pattern, _tmp_params,
-                                           last_error,
-                                           parser, _tmp_params)
+                self.find_package_versions(_file_name_pattern,
+                                           _path_pattern,
+                                           aql,
+                                           _tmp_params.repo)
 
             _package = None
 
@@ -83,8 +82,8 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         bundle_packages = bundle.calculate().values()
         for p in bundle_packages:
-            _packages_found[p.name] = Package(p.name, p.art_path, p, p.paths_params, downloader, self, parser,
-                                              p.params, p.params_raw, p.pkg_stat())
+            _packages_found[p.name] = Package(p.name, p.art_path, p, {}, downloader, self, parser,
+                                              {}, {})
 
         for p in package_names:
             if p not in _packages_found.keys():
@@ -92,126 +91,73 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         return _packages_found
 
-    @staticmethod
-    def parse_contracts_from_items_find_results(properties):
-        contracts = Dict()
 
-        for p in properties:
-            if p.key.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
-                contracts[p.key] = p.value
-
-        return contracts
-
-    def find_package_versions(self, _art_auth_etc, _file_name_pattern,
-                              _path_pattern, _tmp_params, last_error, parser, paths_params):
+    def find_package_versions(self, _file_name_pattern,
+                              _path_pattern, aql, search_repo):
         try:
             packages_with_invalid_naming_convension = []
             package_versions_with_contracts = []
-            _artifactory_server = _tmp_params.server
-            _search_repo = _tmp_params.repo
 
-            # Get AQL path pattern, with fixed part path, without artifactory url and repository name
-            _aql_path_pattern = ""
-            if _path_pattern:
-                _aql_path_pattern = _path_pattern
+            query = self.prepare_aql_query(_file_name_pattern, _path_pattern, search_repo)
+            artifacts = aql.aql(query)
 
-            _aql_query_url = '{}/api/search/aql'.format(_artifactory_server)
-            _aql_query_dict = {
-                "repo": {
-                    "$eq": _search_repo,
-                },
-                "path": {
-                    "$match": _aql_path_pattern,
-                },
-                "name": {
-                    "$match": _file_name_pattern,
-                },
-            }
-            # Remove path if is empty string
-            if not _aql_path_pattern:
-                _aql_query_dict.pop('path')
-            query = 'items.find({query_dict}).include("*", "property")'.format(
-                query_dict=json.dumps(_aql_query_dict))
-            session.auth = _art_auth_etc['auth']
-            r = session.post(_aql_query_url, data=query, verify=_art_auth_etc['verify'])
-            r.raise_for_status()
-
-            _found_paths = Dict(r.json())
-            for _found in _found_paths.results:
-                _repo_path = "{artifactory}/{repo}/{path}/{file_name}".format(
-                    artifactory=_artifactory_server,
-                    repo=_found.repo,
-                    path=_found.path,
-                    file_name=_found.name)
-                _repo_path = ArtifactoryPath(_repo_path, **_art_auth_etc)
-
-                _mark = 'found'
-
+            for art_path in map(aql.from_aql, artifacts):
                 try:
-                    _matched, _params, _params_raw = parser.validate_path(str(_repo_path), _tmp_params)
-                    self._log.debug(
-                        '_matched:{}, _params:{}, _params_raw:{}, _repo_path:{}'.format(_matched, _params, _params_raw,
-                                                                                        str(_repo_path)))
 
-                    if _matched:
-                        contracts = self.parse_contracts_from_items_find_results(_found.properties)
+                    package_with_contracts = crosspm.contracts.package.create_artifactory_package(art_path)
 
-                        package_with_contracts = crosspm.contracts.package.ArtifactoryPackage(_params.package,
-                                                                                              _params_raw.version,
-                                                                                              contracts, _repo_path,
-                                                                                              _params, _params_raw,
-                                                                                              paths_params,
-                                                                                              _found
-                                                                                              )
+                    package_versions_with_contracts.append(package_with_contracts)
 
-                        package_versions_with_contracts.append(package_with_contracts)
-
-                        _mark = 'valid'
-
-                        self._log.info('  {}: {}'.format(_mark, str(_repo_path)))
+                    self._log.debug(f'  valid: {str(art_path)}')
 
                 except packaging.version.InvalidVersion as e:
-                    packages_with_invalid_naming_convension.append(InvalidPackage(_repo_path, e))
-                    self._log.warn(f"{e} for {_repo_path}")
+                    packages_with_invalid_naming_convension.append(InvalidPackage(art_path, e))
+                    self._log.warn(f"{e} for {art_path}")
 
         except RuntimeError as e:
-            try:
-                err = json.loads(e.args[0])
-            except Exception:
-                err = {}
-            if isinstance(err, dict):
-                # Check errors
-                # :e.args[0]: {
-                #                 "errors" : [ {
-                #                     "status" : 404,
-                #                     "message" : "Not Found"
-                #                  } ]
-                #             }
-                for error in err.get('errors', []):
-                    err_status = error.get('status', -1)
-                    err_msg = error.get('message', '')
-                    if err_status == 401:
-                        msg = 'Authentication error[{}]{}'.format(err_status,
-                                                                  (': {}'.format(
-                                                                      err_msg)) if err_msg else '')
-                    elif err_status == 404:
-                        msg = last_error
-                    else:
-                        msg = 'Error[{}]{}'.format(err_status,
-                                                   (': {}'.format(err_msg)) if err_msg else '')
-                    if last_error != msg:
-                        self._log.error(msg)
-                    last_error = msg
+            self.try_parse_http_error(e, last_error)
 
         return package_versions_with_contracts, packages_with_invalid_naming_convension
 
-    # def find_package_in_repo_by_fullname(self, source, package_fullname):
-    #
-    #     return
+    def prepare_aql_query(self, _file_name_pattern, _path_pattern, _search_repo):
+        # Get AQL path pattern, with fixed part path, without artifactory url and repository name
+        _aql_path_pattern = ""
+        if _path_pattern:
+            _aql_path_pattern = _path_pattern
+        _aql_query_dict = {
+            "repo": {
+                "$eq": _search_repo,
+            },
+            "path": {
+                "$match": _aql_path_pattern,
+            },
+            "name": {
+                "$match": _file_name_pattern,
+            },
+        }
+        # Remove path if is empty string
+        if not _aql_path_pattern:
+            _aql_query_dict.pop('path')
+        query = 'items.find({query_dict}).include("*", "property")'.format(
+            query_dict=json.dumps(_aql_query_dict))
+        return query
 
-    def download_package(self, source, package_fullname, package_local_fullpath):
-        packages = self.find_package_versions(self.get_auth(source), package_fullname, '', {}, last_error, self.parser,
-                                              {})
+    def try_parse_http_error(self, e, last_error):
+        try:
+            err = json.loads(e.args[0])
+        except Exception:
+            err = {}
+        if isinstance(err, dict):
+            # Check errors
+            # :e.args[0]: {
+            #                 "errors" : [ {
+            #                     "status" : 404,
+            #                     "message" : "Not Found"
+            #                  } ]
+            #             }
+            for error in err.get('errors', []):
+                err_status = error.get('status', -1)
+                err_msg = error.get('message', '')
 
-        with packages[0].art_path.open() as fd, open(package_local_fullpath, "wb") as out:
-            out.write(fd.read())
+                self._log.error('Error[{}]{}'.format(err_status,
+                                               (': {}'.format(err_msg)) if err_msg else ''))
