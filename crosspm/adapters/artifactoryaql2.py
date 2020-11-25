@@ -89,6 +89,10 @@ class ArtifactoryAql2(ArtifactoryAql):
                         downloader._config.trigger_package)
 
         bundle_packages = bundle.calculate().values()
+
+        self._log.info('Final bundle packages with contracts:')
+        print_packages_by_contracts_scheme(self._log, bundle_packages)
+
         for p in bundle_packages:
             _packages_found[p.name] = Package(p.name, p.art_path, p, {}, downloader, self, parser,
                                               {}, {})
@@ -188,3 +192,7 @@ class ArtifactoryAql2(ArtifactoryAql):
 
                 self._log.error('Error[{}]{}'.format(err_status,
                                                (': {}'.format(err_msg)) if err_msg else ''))
+
+def print_packages_by_contracts_scheme(logger, packages):
+        for p in packages:
+            logger.info(f"  {p}")
