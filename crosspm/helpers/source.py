@@ -49,7 +49,8 @@ class Source:
                 'server': self.args['server'],
                 'repo': repo,
                 'package': package['package'],
-                'version': package['version']
+                'version': package['version'],
+                'contracts': package.get('contracts')
             }
             paths.append(Dict({'path': path_pattern.format(**params), 'params': params}))
 

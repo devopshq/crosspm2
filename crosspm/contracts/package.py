@@ -38,6 +38,9 @@ class Package:
     def is_microservice(self, microservice):
         return self.name == microservice
 
+    def has_contract(self, contract):
+        return contract in self.contracts
+
     def is_contract_lower_then(self, other):
         if other.name in self.contracts:
             return self.contracts[other.name].value < other.value

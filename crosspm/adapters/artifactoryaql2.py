@@ -74,7 +74,14 @@ class ArtifactoryAql2(ArtifactoryAql):
             _package = None
 
             if _package_versions_with_contracts:
-                repo_returned_packages_all += _package_versions_with_contracts
+
+                _package_versions_with_all_contracts = self.remove_packages_with_missing_contracts(
+                    _package_versions_with_contracts,
+                    _path.params['contracts']
+                )
+
+                if _package_versions_with_all_contracts:
+                    repo_returned_packages_all += _package_versions_with_all_contracts
 
         package_names = [x[self._config.name_column] for x in list_or_file_path['raw']]
 
@@ -92,6 +99,25 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         return _packages_found
 
+    def remove_packages_with_missing_contracts(self, packages, contracts):
+
+        if not contracts:
+            return packages
+
+        packages_with_all_contracts = []
+
+        for p in packages:
+            package_missing_contracts =[]
+            for c in contracts.strip().split(';'):
+                if not p.has_contract(c):
+                    package_missing_contracts += [c]
+
+            if package_missing_contracts:
+                self._log.info(f"Skip package {p} - missing contracts {package_missing_contracts}")
+            else:
+                packages_with_all_contracts += [p]
+
+        return packages_with_all_contracts
 
     def find_package_versions(self, _file_name_pattern,
                               _path_pattern, aql, search_repo):
