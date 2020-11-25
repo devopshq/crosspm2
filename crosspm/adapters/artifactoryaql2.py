@@ -111,7 +111,7 @@ class ArtifactoryAql2(ArtifactoryAql):
         packages_with_all_contracts = []
 
         for p in packages:
-            package_missing_contracts =[]
+            package_missing_contracts = []
             for c in contracts.strip().split(';'):
                 if not p.has_contract(c):
                     package_missing_contracts += [c]
@@ -191,8 +191,9 @@ class ArtifactoryAql2(ArtifactoryAql):
                 err_msg = error.get('message', '')
 
                 self._log.error('Error[{}]{}'.format(err_status,
-                                               (': {}'.format(err_msg)) if err_msg else ''))
+                                                     (': {}'.format(err_msg)) if err_msg else ''))
+
 
 def print_packages_by_contracts_scheme(logger, packages):
-        for p in packages:
-            logger.info(f"  {p}")
+    for p in packages:
+        logger.info(f"  {p}")
