@@ -75,10 +75,14 @@ class ArtifactoryAql2(ArtifactoryAql):
 
             if _package_versions_with_contracts:
 
-                _package_versions_with_all_contracts = self.remove_packages_with_missing_contracts(
-                    _package_versions_with_contracts,
-                    _path.params['contracts']
-                )
+                _package_versions_with_all_contracts, package_versions_with_missing_contracts = \
+                    remove_package_versions_with_missing_contracts(
+                        _package_versions_with_contracts,
+                        _path.params['contracts']
+                    )
+
+                for p, missing_contracts in package_versions_with_missing_contracts.items():
+                    self._log.info(f"Skip {p} - missing contracts {missing_contracts}")
 
                 if _package_versions_with_all_contracts:
                     repo_returned_packages_all += _package_versions_with_all_contracts
@@ -103,25 +107,6 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         return _packages_found
 
-    def remove_packages_with_missing_contracts(self, packages, contracts):
-
-        if not contracts:
-            return packages
-
-        packages_with_all_contracts = []
-
-        for p in packages:
-            package_missing_contracts = []
-            for c in contracts.strip().split(';'):
-                if not p.has_contract(c):
-                    package_missing_contracts += [c]
-
-            if package_missing_contracts:
-                self._log.info(f"Skip package {p} - missing contracts {package_missing_contracts}")
-            else:
-                packages_with_all_contracts += [p]
-
-        return packages_with_all_contracts
 
     def find_package_versions(self, _file_name_pattern,
                               _path_pattern, aql, search_repo):
@@ -197,3 +182,24 @@ class ArtifactoryAql2(ArtifactoryAql):
 def print_packages_by_contracts_scheme(logger, packages):
     for p in packages:
         logger.info(f"  {p}")
+
+def remove_package_versions_with_missing_contracts(package_versions, contracts):
+
+    if not contracts:
+        return package_versions, {}
+
+    package_versions_with_all_contracts = []
+    package_versions_with_missing_contracts = {}
+
+    for p in package_versions:
+        package_version_missing_contracts = []
+        for c in contracts.strip().split(';'):
+            if not p.has_contract(c):
+                package_version_missing_contracts += [c]
+
+        if package_version_missing_contracts:
+            package_versions_with_missing_contracts[p] = package_version_missing_contracts
+        else:
+            package_versions_with_all_contracts += [p]
+
+    return package_versions_with_all_contracts, package_versions_with_missing_contracts
