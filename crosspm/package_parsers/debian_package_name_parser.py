@@ -1,7 +1,5 @@
 from parse import compile
 
-from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH
-
 DEBIAN_PACKAGENAME_PATTERN = compile('{}_{}_{}.deb')
 
 # https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html
@@ -26,7 +24,7 @@ class DebianPackageNameParser:
             version, sep, revision = fullversion.partition('-')
             return DebianPackageNameParser(package, version, revision, arch)
         except TypeError:
-            raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH, f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
+            raise Exception(f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
 
 
     def __str__(self):
