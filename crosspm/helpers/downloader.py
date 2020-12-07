@@ -224,3 +224,6 @@ class Downloader(Command):
         :return: list of first level packages, with child
         """
         return self._root_package.packages
+
+    def iter_packages_params(self, list_or_file_path, deps_content=None):
+        return self.common_parser.iter_packages_params(list_or_file_path, deps_content)
