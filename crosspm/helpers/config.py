@@ -107,7 +107,7 @@ class Config:
         self._output = {}
         self._solid = {}
         self._fails = {}
-        self.name_column = ''
+        self.name_column = 'package'
         self.deps_file_name = ''
         self.deps_lock_file_name = ''
         self.lock_on_success = lock_on_success
