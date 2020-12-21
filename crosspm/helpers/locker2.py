@@ -29,8 +29,8 @@ class Locker2(Locker):
         self._log.info('Writing lock file [{}]'.format(depslock_file_path))
 
         # DepsTxtLockTableFormatter.write(depslock_file_path, self._root_package.packages)
-
-        DepsTxtLockListFormatter.write_packages_to_lock_file(depslock_file_path, self._root_package.packages)
+        with open(depslock_file_path, 'w+') as f:
+            DepsTxtLockListFormatter.write_packages_to_lock_file(f, self._root_package.packages)
 
         self._log.info('Done!')
 
