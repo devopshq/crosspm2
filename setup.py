@@ -101,6 +101,7 @@ setup(
         "parse>=1.15.0",  # need for crosspm2 contract scheme
         "tabulate>=0.8.7",  # need for crosspm2 contract scheme
         "ordered-set>=4.0.2",
+        "wcmatch",
 
     ],
     package_data={
