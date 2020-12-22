@@ -28,26 +28,30 @@ def dependencies_txt():
 
 class TestBundle:
 
-    def create_bundle(self, trigger_package):
-        return Bundle(dependencies_txt(), packages_repo(), trigger_package)
+    def create_bundle(self, trigger_packages):
+        return Bundle(dependencies_txt(), packages_repo(), trigger_packages)
 
     @pytest.mark.parametrize(
         "test_case",
         [
             {
-                'trigger_package': ('db', 4, [('c.db', 1)]),
+                'trigger_packages': [('db', 4, [('c.db', 1)])],
                 'packages': [('db', 4), ('ui', 2), ('be', 3), ('ncp', 3)]
             },
             {
-                'trigger_package': ('be', 4, [('c.db', 1), ('c.rest', 1)]),
+                'trigger_packages': [('db', 4, [('c.db', 1)])],
+                'packages': [('db', 4), ('ui', 2), ('be', 3), ('ncp', 3)]
+            },
+            {
+                'trigger_packages': [('be', 4, [('c.db', 1), ('c.rest', 1)])],
                 'packages': [('db', 1), ('ui', 1), ('be', 4), ('ncp', 3)]
             },
             {
-                'trigger_package': None,
+                'trigger_packages': [],
                 'packages': [('db', 2), ('ui', 1), ('be', 2), ('ncp', 3)]
             },
             {
-                'trigger_package': ('ui', 4, [('c.db', 1), ('c.rest', 1)]),
+                'trigger_packages': [('ui', 4, [('c.db', 1), ('c.rest', 1)])],
                 'packages': [('db', 1), ('ui', 4), ('be', 1), ('ncp', 3)]
             },
         ]
@@ -60,7 +64,7 @@ class TestBundle:
         "test_case",
         [
             {
-                'trigger_package': ('be', 4, [('c.db', 3), ('c.rest', 4)])
+                'trigger_packages': [('be', 4, [('c.db', 3), ('c.rest', 4)])]
             },
             {
                 'trigger_package': ('be', 4, [('c.db', 3), ('c.rest', 4)]),
@@ -75,7 +79,10 @@ class TestBundle:
 
 
     def do_test_calculate_case(self, test_case) -> None:
-        tp = Package.create_package(test_case['trigger_package']) if test_case['trigger_package'] is not None else None
+        tp = []
+        if test_case['trigger_packages']:
+            tp = [Package.create_package(test_case['trigger_packages'])]
+
         bundle = self.create_bundle(tp)
 
         packages = set(bundle.calculate().values())
