@@ -6,7 +6,7 @@ from addict import Dict
 from crosspm.contracts.package_version import PackageVersion
 from crosspm.helpers.parser import Parser
 from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
-from deps_txt_parsers.deps_simple import PackageMatch
+from crosspm.deps_txt_parsers.deps_simple import PackageMatch
 
 
 class Parser2():

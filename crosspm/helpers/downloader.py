@@ -132,7 +132,8 @@ class Downloader(Command):
 
     # Download packages or just unpack already loaded (it's up to adapter to decide)
     def download_packages(self):
-        packages_path_in_repo = DepsTxtLockListFormatter.read_packages_from_lock_file(self._config.depslock_path)
+        with open(self._config.depslock_path) as f:
+            packages_path_in_repo = DepsTxtLockListFormatter.read_packages_from_lock_file(f)
 
         session = requests.Session()
 
