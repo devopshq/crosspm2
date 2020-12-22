@@ -1,3 +1,4 @@
+import packaging
 from parse import compile
 
 DEBIAN_PACKAGENAME_PATTERN = compile('{}_{}_{}.deb')
@@ -24,7 +25,7 @@ class DebianPackageNameParser:
             version, sep, revision = fullversion.partition('-')
             return DebianPackageNameParser(package, version, revision, arch)
         except TypeError:
-            raise Exception(f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
+            raise packaging.version.InvalidVersion(f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
 
 
     def __str__(self):
