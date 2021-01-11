@@ -2,7 +2,9 @@ import logging
 
 from ordered_set import OrderedSet
 
-from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND
+from contracts.package import is_packages_contracts_graph_resolvable
+from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, \
+    CrosspmBundleNoValidContractsGraph, CrosspmBundleTriggerPackagesHasNoValidContractsGraph
 
 
 class Bundle:
@@ -37,6 +39,10 @@ class Bundle:
         self._log.info('deps: {}'.format(self._deps))
         self._log.info('trigger_packages: {}'.format(self._trigger_packages))
         self._log.info('packages_repo: {}'.format(self._packages_repo))
+
+        if not is_packages_contracts_graph_resolvable(self._trigger_packages):
+            raise CrosspmBundleTriggerPackagesHasNoValidContractsGraph(self._trigger_packages)
+
         for tp in self._trigger_packages:
             self._packages[tp.name] = tp
 
@@ -75,7 +81,7 @@ class Bundle:
             self._package_add(package)
             return
 
-        raise BaseException("cant select next package for current contracts:\n"
+        raise CrosspmBundleNoValidContractsGraph("cant select next package for current contracts:\n"
                             "next_packages_out_of_current_contracts : {}\n"
                             "rest_packages_to_find : {}"
                             .format(next_packages_out_of_current_contracts, rest_packages_to_find))
@@ -126,7 +132,7 @@ class Bundle:
         for p in [*self._packages.values()]:
             if p.is_any_contract_higher(package_lowering_contract):
                 if p in self._trigger_packages:
-                    raise BaseException(
+                    raise CrosspmBundleNoValidContractsGraph(
                         f"no tree resolve with trigger_packages {self._trigger_packages}, threre is no appropriate packages with specified package contracts")
 
                 del self._packages[p.name]

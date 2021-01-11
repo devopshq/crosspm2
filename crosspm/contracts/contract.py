@@ -33,4 +33,9 @@ class PackageContracts:
         c = self[contract]
         return c and c.value < contract.value
 
+    def is_equal(self, contract):
+        c = self[contract]
+        return c and c.value == contract.value
+
+
 

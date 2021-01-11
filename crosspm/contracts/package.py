@@ -112,6 +112,20 @@ def parse_contracts_from_package_properties(properties):
     return contracts
 
 
+def is_packages_contracts_graph_resolvable(packages):
+    contracts = {}
+
+    for p in packages:
+        contracts_intersection = contracts.keys() & p.contracts.keys()
+        for c in contracts_intersection:
+            if not p.contracts[c] == contracts[c]:
+                return False
+
+        contracts.update(p.contracts)
+
+    return True
+
+
 class ArtifactoryPackage(Package):
     def __init__(self, art_path, name, version, contracts):
         super(ArtifactoryPackage, self).__init__(name, version,
