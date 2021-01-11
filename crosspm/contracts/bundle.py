@@ -2,7 +2,7 @@ import logging
 
 from ordered_set import OrderedSet
 
-from contracts.package import is_packages_contracts_graph_resolvable
+from crosspm.contracts.package import is_packages_contracts_graph_resolvable
 from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, \
     CrosspmBundleNoValidContractsGraph, CrosspmBundleTriggerPackagesHasNoValidContractsGraph
 
