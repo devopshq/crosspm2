@@ -18,6 +18,7 @@ class Contract:
     def __ne__(self, other):
         return not (self == other)
 
+
 class PackageContracts:
     def __init__(self, contracts):
         self._contracts = contracts
@@ -36,6 +37,3 @@ class PackageContracts:
     def is_equal(self, contract):
         c = self[contract]
         return c and c.value == contract.value
-
-
-

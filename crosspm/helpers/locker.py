@@ -9,7 +9,7 @@ from crosspm.helpers.parser import Parser
 
 
 class Locker(Downloader):
-    def __init__(self, config, do_load, recursive, parser_cls = Parser):
+    def __init__(self, config, do_load, recursive, parser_cls=Parser):
         # TODO: revise logic to allow recursive search without downloading
         super(Locker, self).__init__(config, do_load, recursive, parser_cls)
 

@@ -3,6 +3,7 @@ from parse import compile
 
 DEBIAN_PACKAGENAME_PATTERN = compile('{}_{}_{}.deb')
 
+
 # https://www.debian.org/doc/manuals/debian-faq/pkg-basics.en.html
 # 7.3. Why are Debian package file names so long?
 # The Debian binary package file names conform to the following convention:
@@ -25,8 +26,8 @@ class DebianPackageNameParser:
             version, sep, revision = fullversion.partition('-')
             return DebianPackageNameParser(package, version, revision, arch)
         except TypeError:
-            raise packaging.version.InvalidVersion(f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
-
+            raise packaging.version.InvalidVersion(
+                f"package name <{package_name}> mismatch debian name convension pattern <foo>_<Version>_<DebianArchitecture>.deb")
 
     def __str__(self):
         return self.fullname

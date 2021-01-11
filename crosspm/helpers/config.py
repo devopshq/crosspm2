@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import platform
+
 import json
 import logging
 import os
-import platform
-import sys
-
 import packaging
 import requests
 import yaml
 
+import crosspm.contracts.package
 from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.adapters.artifactoryaql2 import ArtifactoryAql2
 from crosspm.helpers.cache import Cache
@@ -17,7 +17,6 @@ from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser
 from crosspm.helpers.parser2 import Parser2
 from crosspm.helpers.source import Source
-import crosspm.contracts.package
 
 requests.packages.urllib3.disable_warnings()
 
@@ -67,6 +66,7 @@ class FactoryParser:
         parser_cls = self.parsers[name]
         return parser_cls(name, data, config)
 
+
 #
 # class FactoryAdapter:
 #     def __init__(self):
@@ -86,6 +86,8 @@ class FactoryParser:
 
 
 factory_parser = FactoryParser()
+
+
 # factory_adapter = FactoryAdapter()
 
 
@@ -119,7 +121,8 @@ class Config:
             else:
                 self.trigger_package = None
         except packaging.version.InvalidVersion as e:
-            raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH, f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
+            raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH,
+                                   f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
 
         self.crosspm_cache_root = ''
         self.deps_path = ''

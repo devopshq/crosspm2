@@ -30,14 +30,17 @@ class CrosspmException(Exception):
         self.error_code = error_code
         self.msg = msg
 
+
 class CrosspmBundleNoValidContractsGraph(CrosspmException):
     def __init__(self, msg=''):
         super().__init__(CROSSPM_ERRORCODE_BUNDLE_NO_VALID_CONTRACTS_GRAPH, msg)
+
 
 class CrosspmBundleTriggerPackagesHasNoValidContractsGraph(CrosspmException):
     def __init__(self, trigger_packages):
         super().__init__(CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGES_HAS_NO_VALID_CONTRACTS_GRAPH,
                          f"trigger_packages has no valid contracts graph : {trigger_packages}")
+
 
 class CrosspmExceptionWrongArgs(CrosspmException):
     def __init__(self, msg=''):

@@ -40,13 +40,12 @@ Options:
 
 """  # noqa
 
+import shlex
+
 import logging
 import os
-import shlex
 import sys
 import time
-
-import requests
 from docopt import docopt
 
 from crosspm import version
@@ -225,7 +224,6 @@ class CrossPM:
                               _depslock_path, _deps_path,
                               self._args['--lock-on-success'], self._args['--prefer-local'],
                               self._args['--trigger-package'])
-
 
         self._output = Output(self._config.output('result', None), self._config.name_column, self._config)
 

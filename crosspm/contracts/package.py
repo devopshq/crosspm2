@@ -1,5 +1,3 @@
-from pathlib import PurePath
-
 import dateutil
 from addict import Dict
 

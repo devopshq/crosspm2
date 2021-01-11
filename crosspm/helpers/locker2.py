@@ -33,4 +33,3 @@ class Locker2(Locker):
             DepsTxtLockListFormatter.write_packages_to_lock_file(f, self._root_package.packages)
 
         self._log.info('Done!')
-

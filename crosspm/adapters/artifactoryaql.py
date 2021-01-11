@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import copy
+from collections import OrderedDict
+
 import json
 import os
-import time
-from collections import OrderedDict
-from datetime import datetime
-
 import requests
+import time
 from artifactory import ArtifactoryPath
+from datetime import datetime
 from requests.auth import HTTPBasicAuth
 
 from crosspm.adapters.common import BaseAdapter

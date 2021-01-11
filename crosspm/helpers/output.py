@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from collections import OrderedDict
+
 import json
 import logging
 import os
 import re
 import sys
-from collections import OrderedDict
-
 from jinja2 import Environment, FileSystemLoader
 
 from crosspm.helpers.exceptions import *

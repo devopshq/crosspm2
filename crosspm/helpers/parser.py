@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import fnmatch
+
 import itertools
 import logging
 import os
@@ -1075,5 +1076,3 @@ https://repo.example.com/artifactory/libs-cpp-release.snapshot/boost/1.60-pm/*.*
         _new_path += found_str
         _res = True
         return _new_path, _path, _res
-
-

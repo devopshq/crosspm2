@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import fnmatch
+from collections import OrderedDict
+
 import hashlib
 import logging
 import os
 import shutil
-from collections import OrderedDict
-
 from artifactory import ArtifactoryPath
 
 from crosspm.helpers.archive import Archive
@@ -54,7 +54,6 @@ class Package:
             self._params_found = params_found
         if params_found_raw:
             self._params_found_raw = params_found_raw
-
 
     def download(self, force=False):
         """

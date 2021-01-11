@@ -1,5 +1,4 @@
 import logging
-
 from ordered_set import OrderedSet
 
 from crosspm.contracts.package import is_packages_contracts_graph_resolvable
@@ -32,7 +31,8 @@ class Bundle:
             if p == trigger_package:
                 return p
 
-        raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, f"trigger_package = <{trigger_package}> NOT FOUND in repo_packages : {repo_packages}")
+        raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND,
+                               f"trigger_package = <{trigger_package}> NOT FOUND in repo_packages : {repo_packages}")
 
     def calculate(self):
 
@@ -62,8 +62,10 @@ class Bundle:
 
         for m in rest_packages_to_find:
             for p in [i for i in self._packages_repo if i.is_microservice(m)]:
-                package = self.is_package_corresponds_bundle_current_contracts(next_packages_out_of_current_contracts, p,
-                                                                               self._bundle_contracts, package_lowering_contract)
+                package = self.is_package_corresponds_bundle_current_contracts(next_packages_out_of_current_contracts,
+                                                                               p,
+                                                                               self._bundle_contracts,
+                                                                               package_lowering_contract)
                 if package:
                     self._package_add(package)
                     return
@@ -76,17 +78,19 @@ class Bundle:
 
                 return
 
-        package = self.select_next_microservice_package_out_of_current_contracts(next_packages_out_of_current_contracts, rest_packages_to_find)
+        package = self.select_next_microservice_package_out_of_current_contracts(next_packages_out_of_current_contracts,
+                                                                                 rest_packages_to_find)
         if package:
             self._package_add(package)
             return
 
         raise CrosspmBundleNoValidContractsGraph("cant select next package for current contracts:\n"
-                            "next_packages_out_of_current_contracts : {}\n"
-                            "rest_packages_to_find : {}"
-                            .format(next_packages_out_of_current_contracts, rest_packages_to_find))
+                                                 "next_packages_out_of_current_contracts : {}\n"
+                                                 "rest_packages_to_find : {}"
+                                                 .format(next_packages_out_of_current_contracts, rest_packages_to_find))
 
-    def select_next_microservice_package_out_of_current_contracts(self, next_packages_out_of_current_contracts, select_order):
+    def select_next_microservice_package_out_of_current_contracts(self, next_packages_out_of_current_contracts,
+                                                                  select_order):
         for i in select_order:
             if i in next_packages_out_of_current_contracts:
                 return next_packages_out_of_current_contracts[i]
@@ -122,7 +126,6 @@ class Bundle:
                 elif package_lowering_contract[0].is_contract_lower_then(package.contracts[c]):
                     package_lowering_contract.clear();
                     package_lowering_contract.append(package)
-
 
         if not failed_contracts:
             return package

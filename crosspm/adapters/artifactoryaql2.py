@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import http.client
-import json
-import logging
 from collections import OrderedDict
 
+import json
 import packaging
 import requests
 from addict import Dict
@@ -107,7 +105,6 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         return _packages_found
 
-
     def find_package_versions(self, _file_name_pattern,
                               _path_pattern, aql, search_repo):
         try:
@@ -183,8 +180,8 @@ def print_packages_by_contracts_scheme(logger, packages):
     for p in packages:
         logger.info(f"  {p}")
 
-def remove_package_versions_with_missing_contracts(package_versions, contracts):
 
+def remove_package_versions_with_missing_contracts(package_versions, contracts):
     if not contracts:
         return package_versions, {}
 

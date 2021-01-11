@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
+from addict import Dict
 from pathlib import PurePath
 
-from addict import Dict
-
 from crosspm.contracts.package_version import PackageVersion
-from crosspm.helpers.parser import Parser
-from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 from crosspm.deps_txt_parsers.deps_simple import PackageMatch
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class Parser2():
@@ -29,9 +27,9 @@ class Parser2():
                     continue
 
                 pm = PackageMatch(line)
-                res = {'package': pm.package_name, 'version': pm.version_pattern, 'contracts': pm.contracts, 'server': None, 'repo': None}
+                res = {'package': pm.package_name, 'version': pm.version_pattern, 'contracts': pm.contracts,
+                       'server': None, 'repo': None}
                 yield res
-
 
     def get_vars(self):
         return ['server', 'repo', 'package', 'version']
@@ -52,7 +50,6 @@ class Parser2():
 
     def merge_with_mask(self, column, value):
         return value
-
 
     @staticmethod
     def split_fixed_pattern_with_file_name(path):

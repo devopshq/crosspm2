@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+from collections import OrderedDict
+
 import http
 import logging
 import os
 import pathlib
-import shutil
-from collections import OrderedDict, defaultdict
-
 import requests
+import shutil
 from artifactory import ArtifactoryPath
 
 from crosspm.helpers.config import CROSSPM_DEPENDENCY_FILENAME, CROSSPM_DEPENDENCY_LOCK_FILENAME, Config  # noqa
@@ -183,8 +183,7 @@ class Downloader(Command):
 
         if packages_not_found:
             raise CrosspmException(CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND,
-                'Some package(s) not found: {}'.format(', '.join(packages_not_found)))
-
+                                   'Some package(s) not found: {}'.format(', '.join(packages_not_found)))
 
     def entrypoint(self, *args, **kwargs):
         self.download_packages(*args, **kwargs)
