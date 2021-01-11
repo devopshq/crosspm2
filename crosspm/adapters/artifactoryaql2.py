@@ -44,11 +44,7 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         _art_auth_etc = source.get_auth_params()
 
-        _pkg_name_column = self._config.name_column
-        _secret_variables = self._config.secret_variables
         _packages_found = OrderedDict()
-        _packed_exist = False
-        _packed_cache_params = None
         self._log.info('parser: {}'.format(parser._name))
 
         repo_returned_packages_all = []
@@ -69,10 +65,7 @@ class ArtifactoryAql2(ArtifactoryAql):
                                            aql,
                                            _tmp_params.repo)
 
-            _package = None
-
             if _package_versions_with_contracts:
-
                 _package_versions_with_all_contracts, package_versions_with_missing_contracts = \
                     remove_package_versions_with_missing_contracts(
                         _package_versions_with_contracts,

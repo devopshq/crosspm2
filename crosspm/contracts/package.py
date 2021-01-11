@@ -136,10 +136,5 @@ class ArtifactoryPackage(Package):
 
     def pkg_stat(self):
         if not self.stat_pkg:
-            stat = self.art_path.stat()
-            stat_pkg = {
-                'ctime': stat.ctime,
-                'mtime': stat.mtime,
-                'size': stat.size
-            }
+            self.stat = self.art_path.stat()
         return self.stat_pkg

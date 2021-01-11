@@ -120,7 +120,7 @@ class Config:
                 self.trigger_package = crosspm.contracts.package.Package.create_package_debian(trigger_package)
             else:
                 self.trigger_package = None
-        except packaging.version.InvalidVersion as e:
+        except packaging.version.InvalidVersion:
             raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH,
                                    f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
 

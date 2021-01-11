@@ -22,8 +22,8 @@ class PackageMatch:
             self.contracts = []
 
     def is_package_fullname_match_version_pattern(self, package):
-        return package.package == self.package_name \
-               and fnmatch.fnmatch(package.fullversion, self.version_pattern, flags=fnmatch.NEGATE | fnmatch.SPLIT)
+        return package.package == self.package_name and fnmatch.fnmatch(package.fullversion, self.version_pattern,
+                                                                        flags=fnmatch.NEGATE | fnmatch.SPLIT)
 
     def is_package_contracts_match(self, package):
         return all(package.has_contract(c) for c in self.contracts)

@@ -399,7 +399,7 @@ class Output:
                 else:  # str
                     res += "{},\n".format(get_value(dict_or_list[item]))
             else:
-                res += '{} = '.format(self.get_var_name(item), get_value(dict_or_list[item]))
+                res += '{} = '.format(self.get_var_name(item))
                 if isinstance(dict_or_list[item], dict):
                     res += '{\n'
                     for k, v in dict_or_list[item].items():

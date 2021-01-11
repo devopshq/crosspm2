@@ -124,7 +124,7 @@ class Bundle:
                 if not package_lowering_contract:
                     package_lowering_contract.append(package)
                 elif package_lowering_contract[0].is_contract_lower_then(package.contracts[c]):
-                    package_lowering_contract.clear();
+                    package_lowering_contract.clear()
                     package_lowering_contract.append(package)
 
         if not failed_contracts:
