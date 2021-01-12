@@ -13,6 +13,7 @@ from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
+from dohq_common.exceptions import PackageInvalidVersion
 
 CHUNK_SIZE = 1024
 
@@ -116,7 +117,7 @@ class ArtifactoryAql2(ArtifactoryAql):
 
                     self._log.debug(f"  valid: {str(art_path)}")
 
-                except packaging.version.InvalidVersion as e:
+                except PackageInvalidVersion as e:
                     packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
                     self._log.warn(f"{e} for {art_path}")
 
