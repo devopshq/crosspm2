@@ -1,6 +1,6 @@
 import pytest
 
-from contracts.package import Package
+from crosspm.contracts.package import Package
 from crosspm.adapters.artifactoryaql2 import remove_package_versions_with_missing_contracts
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 import pytest
 
-from deps_txt_parsers.deps_simple import DepsTxtSimpleParser
-from package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.deps_txt_parsers.deps_simple import DepsTxtSimpleParser
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 deps_txt = """be 2.6.*- contracts.db
 ui 3.* contracts.rest;contracts.ui"""
