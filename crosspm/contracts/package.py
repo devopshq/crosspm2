@@ -3,7 +3,7 @@ from addict import Dict
 
 from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
-from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
+from dohq_common.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'contracts.'
 

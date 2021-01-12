@@ -2,7 +2,7 @@
 from crosspm.helpers.locker import Locker
 
 from crosspm.helpers.parser2 import Parser2
-from crosspm.output_formatters.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
+from dohq_common.deps_txt.deps_txt_lock_list_formatter import DepsTxtLockListFormatter
 
 
 class Locker2(Locker):

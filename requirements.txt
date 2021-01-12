@@ -18,3 +18,4 @@ addict==2.2.1
 tabulate>=0.8.7
 parse>=1.15.0
 wcmatch
+dohq-common

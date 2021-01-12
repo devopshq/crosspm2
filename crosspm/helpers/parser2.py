@@ -3,8 +3,8 @@ from addict import Dict
 from pathlib import PurePath
 
 from crosspm.contracts.package_version import PackageVersion
-from crosspm.deps_txt_parsers.deps_simple import PackageMatch
-from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
+from dohq_common.deps_txt.deps_txt_simple import PackageMatch
+from dohq_common.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 
 class Parser2():
