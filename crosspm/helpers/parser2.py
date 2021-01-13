@@ -12,7 +12,7 @@ class Parser2():
         # super().__init__(name, data, config)
         self._name = 'repo2'
         self._rules = {}
-        self._rules['path'] = ['{server}/{repo}/**/{package}_{version}.deb']
+        self._rules['path'] = [data['path']]
 
     def iter_packages_params(self, list_or_file_path, deps_content=None):
         with open(list_or_file_path, 'r', encoding="utf-8-sig") as f:
