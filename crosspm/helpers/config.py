@@ -11,8 +11,6 @@ import yaml
 import crosspm.contracts.package
 from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.adapters.artifactoryaql2 import ArtifactoryAql2
-from crosspm.helpers.cache import Cache
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser
 from crosspm.helpers.parser2 import Parser2
@@ -48,7 +46,7 @@ GLOBAL_CONFIG_PATH = [
 
 ENVIRONMENT_CONFIG_PATH = 'CROSSPM_CONFIG_PATH'
 CROSSPM_DEPENDENCY_FILENAME = 'dependencies.txt'  # maybe 'cpm.manifest'
-CROSSPM_DEPENDENCY_LOCK_FILENAME = CROSSPM_DEPENDENCY_FILENAME  # 'dependencies.txt.lock'
+CROSSPM_DEPENDENCY_LOCK_FILENAME = 'dependencies.txt.lock'  # 'dependencies.txt.lock'
 CROSSPM_ADAPTERS_NAME = 'adapters'
 CROSSPM_ADAPTERS_DIR = os.path.join(CROSSPM_ROOT_DIR, CROSSPM_ADAPTERS_NAME)
 
