@@ -26,37 +26,21 @@ class Downloader(Command):
     def __init__(self, config, do_load, recursive, parser_class=Parser):
         self._log = logging.getLogger('crosspm')
         self._config = config  # type: Config
-        self.cache = config.cache
-        self.solid = config.solid
-        self.common_parser = parser_class('common', {}, config)
         self._root_package = Package('<root>', 0, None, {self._config.name_column: '<root>'}, self, None,
-                                     self.common_parser)
+                                     None)
         self.recursive = recursive
 
-        if not config.deps_path:
-            config.deps_path = \
-                config.deps_file_name if config.deps_file_name else CROSSPM_DEPENDENCY_FILENAME
-        deps_path = config.deps_path
-        if deps_path.__class__ is DependenciesContent:
-            # HACK
-            pass
-            self._deps_path = deps_path
-        else:
-            deps_path = config.deps_path.strip().strip('"').strip("'")
-            self._deps_path = os.path.realpath(os.path.expanduser(deps_path))
+        self.do_load = do_load
+
+        deps_path = config.deps_path.strip().strip('"').strip("'")
+        self._deps_path = os.path.realpath(os.path.expanduser(deps_path))
 
         if not config.depslock_path:
             config.depslock_path = \
                 config.deps_lock_file_name if config.deps_lock_file_name else CROSSPM_DEPENDENCY_LOCK_FILENAME
-        depslock_path = config.depslock_path
-        if depslock_path.__class__ is DependenciesContent:
-            # HACK
-            self._depslock_path = depslock_path
-        else:
-            depslock_path = depslock_path.strip().strip('"').strip("'")
-            self._depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
+        depslock_path = config.depslock_path.strip().strip('"').strip("'")
+        self._depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
 
-        self.do_load = do_load
 
     def update_progress(self, msg, progress):
         self._log.info('\r{0} [{1:10}] {2}%'.format(msg, '#' * int(float(progress) / 10.0), int(progress)))

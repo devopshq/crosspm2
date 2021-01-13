@@ -334,51 +334,7 @@ class CrossPM:
 
     @do_run
     def command(self, command_):
-        if self._return_result:
-            params = {}
-        else:
-            if self._args['--out-format'] == 'stdout':
-                if self._args['--output']:
-                    raise CrosspmExceptionWrongArgs(
-                        "unwanted argument '--output' while argument '--out-format={}'".format(
-                            self._args['--out-format'],
-                        ))
-            elif not self._args['--output']:
-                raise CrosspmExceptionWrongArgs(
-                    "argument '--output' required when argument '--out-format={}'".format(
-                        self._args['--out-format'],
-                    ))
-
-            params = {
-                'out_format': ['--out-format', ''],
-                'output': ['--output', ''],
-                'output_template': ['--output-template', ''],
-                # 'out_prefix': ['--out-prefix', ''],
-                # 'depslock_path': ['--depslock-path', ''],
-            }
-
-            for k, v in params.items():
-                params[k] = self._args[v[0]] if v[0] in self._args else v[1]
-                if isinstance(params[k], str):
-                    params[k] = params[k].strip('"').strip("'")
-
-            # try to dynamic load --output-template from python module
-            output_template = params['output_template']
-            if output_template:
-                # Try to load from python module
-                module_template = get_object_from_string(output_template)
-                if module_template is not None:
-                    self._log.debug(
-                        "Found output template path '{}' from '{}'".format(module_template, output_template))
-                    params['output_template'] = module_template
-                else:
-                    self._log.debug("Output template '{}' use like file path".format(output_template))
-
-            # check template exist
-            output_template = params['output_template']
-            if output_template and not os.path.exists(output_template):
-                raise CrosspmException(CROSSPM_ERRORCODE_CONFIG_NOT_FOUND,
-                                       "Can not find template '{}'".format(output_template))
+        params = {}
 
         do_load = not self._args['--list']
         # hack for Locker
@@ -390,9 +346,7 @@ class CrossPM:
 
         if self._return_result:
             return self._return(cpm_)
-        else:
-            # self._output.write(params, packages)
-            self._output.write_output(params, cpm_.get_tree_packages())
+
         return ''
 
     def _return(self, cpm_downloader):

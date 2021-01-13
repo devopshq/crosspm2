@@ -110,8 +110,8 @@ class Config:
         self._solid = {}
         self._fails = {}
         self.name_column = 'package'
-        self.deps_file_name = ''
-        self.deps_lock_file_name = ''
+        self.deps_file_name = 'dependencies.txt'
+        self.deps_lock_file_name = 'dependencies.txt.lock'
         self.lock_on_success = lock_on_success
         self.prefer_local = prefer_local
 
@@ -132,38 +132,34 @@ class Config:
         self.secret_variables = []
         self.output_path = output_path
         cpm_conf_name = ''
+
+
         if deps_path:
-            if deps_path.__class__ is DependenciesContent:
-                # HACK
-                self.deps_path = deps_path
-            else:
-                deps_path = deps_path.strip().strip('"').strip("'")
-                self.deps_path = os.path.realpath(os.path.expanduser(deps_path))
-            if not cpm_conf_name:
-                cpm_conf_name = self.get_cpm_conf_name(deps_path)
-            if os.path.isfile(deps_path):
-                config_path_tmp = os.path.dirname(deps_path)
-            else:
-                config_path_tmp = deps_path
-            if config_path_tmp not in DEFAULT_CONFIG_PATH:
-                DEFAULT_CONFIG_PATH.append(config_path_tmp)
+            deps_path = deps_path.strip().strip('"').strip("'")
+            self.deps_path = os.path.realpath(os.path.expanduser(deps_path))
 
         if depslock_path:
-            if depslock_path.__class__ is DependenciesContent:
-                # HACK
-                self.depslock_path = depslock_path
-            else:
-                depslock_path = depslock_path.strip().strip('"').strip("'")
-                self.depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
+            depslock_path = depslock_path.strip().strip('"').strip("'")
+            self.depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
 
-            if not cpm_conf_name:
-                cpm_conf_name = self.get_cpm_conf_name(depslock_path)
-            if os.path.isfile(depslock_path):
-                config_path_tmp = os.path.dirname(depslock_path)
-            else:
-                config_path_tmp = depslock_path
-            if config_path_tmp not in DEFAULT_CONFIG_PATH:
-                DEFAULT_CONFIG_PATH.append(config_path_tmp)
+        if not cpm_conf_name:
+            cpm_conf_name = self.get_cpm_conf_name(deps_path)
+        if os.path.isfile(deps_path):
+            config_path_tmp = os.path.dirname(deps_path)
+        else:
+            config_path_tmp = deps_path
+        if config_path_tmp not in DEFAULT_CONFIG_PATH:
+            DEFAULT_CONFIG_PATH.append(config_path_tmp)
+
+
+        if not cpm_conf_name:
+            cpm_conf_name = self.get_cpm_conf_name(depslock_path)
+        if os.path.isfile(depslock_path):
+            config_path_tmp = os.path.dirname(depslock_path)
+        else:
+            config_path_tmp = depslock_path
+        if config_path_tmp not in DEFAULT_CONFIG_PATH:
+            DEFAULT_CONFIG_PATH.append(config_path_tmp)
 
         self._config_file_name = self.find_config_file(config_file_name, cpm_conf_name)
         self._global_config_file_name = self.find_global_config_file()
@@ -623,19 +619,14 @@ class Config:
             self._not_columns.update({k: None for k in _parser.get_vars() if k not in self._not_columns})
 
     def init_parsers(self, parsers):
-        if 'common' not in parsers:
-            parsers['common'] = {}
         for k, v in parsers.items():
-            if k != 'common':
-                if k not in self._parsers:
-                    v.update({_k: _v for _k, _v in parsers['common'].items() if _k not in v})
-
-                    self._parsers[k] = factory_parser.create(k, v, self)
-                else:
-                    code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
-                    msg = 'Config file contains multiple definitions of the same parser: [{}]'.format(k)
-                    self._log.exception(msg)
-                    raise CrosspmException(code, msg)
+            if k not in self._parsers:
+                self._parsers[k] = factory_parser.create(k, v, self)
+            else:
+                code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
+                msg = 'Config file contains multiple definitions of the same parser: [{}]'.format(k)
+                self._log.exception(msg)
+                raise CrosspmException(code, msg)
         if len(self._parsers) == 0:
             code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
             msg = 'Config file does not contain package_parsers! Unable to process any further.'

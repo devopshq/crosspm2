@@ -5,6 +5,10 @@ from pathlib import PurePath
 from crosspm.contracts.package_version import PackageVersion
 from dohq_common.deps_txt.deps_txt_simple import PackageMatch
 from dohq_common.package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.helpers.parser import Parser
+from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
+from crosspm.deps_txt_parsers.deps_simple import PackageMatch
+from dohq_common.deps_txt.deps_txt_simple import DepsTxtSimpleReader
 
 
 class Parser2():
@@ -19,17 +23,12 @@ class Parser2():
             for i, line in enumerate(f):
                 line = line.strip()
 
-                #  if i == 0 and line.startswith(''.join(map(chr,(1087,187,1111)))):
-                if i == 0 and line.startswith(chr(1087) + chr(187) + chr(1111)):  # TODO: why?
-                    line = line[3:]
+    def iter_packages_params(self, deps_txt_path, deps_content=None):
+        package_matches = DepsTxtSimpleReader(deps_txt_path).package_matches
+        for pm in package_matches:
+            res = {'package': pm.package_name, 'version': pm.version_pattern, 'contracts': pm.contracts, 'server': None, 'repo': None}
+            yield res
 
-                if not line or line.startswith(('#', '[',)):
-                    continue
-
-                pm = PackageMatch(line)
-                res = {'package': pm.package_name, 'version': pm.version_pattern, 'contracts': pm.contracts,
-                       'server': None, 'repo': None}
-                yield res
 
     def get_vars(self):
         return ['server', 'repo', 'package', 'version']
@@ -50,6 +49,7 @@ class Parser2():
 
     def merge_with_mask(self, column, value):
         return value
+
 
     @staticmethod
     def split_fixed_pattern_with_file_name(path):

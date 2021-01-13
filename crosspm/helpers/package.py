@@ -113,7 +113,7 @@ class Package:
         :return:
         """
         self._raw = [x for x in
-                     self._downloader.common_parser.iter_packages_params(depslock_file_path, deps_content=deps_content)]
+                     self._downloader._config.get_parser('repo2').iter_packages_params(depslock_file_path, deps_content=deps_content)]
         self.packages = self._downloader.get_dependency_packages({'raw': self._raw},
                                                                  property_validate=property_validate)
 
