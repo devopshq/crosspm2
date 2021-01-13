@@ -118,6 +118,8 @@ class ArtifactoryAql2(ArtifactoryAql):
                     self._log.debug(f"  valid: {str(art_path)}")
 
                 except PackageInvalidVersion as e:
+                    pass
+                except packaging.version.InvalidVersion as e:
                     packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
                     self._log.warn(f"{e} for {art_path}")
 
