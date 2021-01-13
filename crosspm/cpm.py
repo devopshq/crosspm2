@@ -42,10 +42,10 @@ import logging
 import os
 import sys
 import time
+from crosspm.helpers.archive import Archive
 from docopt import docopt
 
 from crosspm import version
-from crosspm.helpers.archive import Archive
 from crosspm.helpers.config import (
     CROSSPM_DEPENDENCY_LOCK_FILENAME,
     CROSSPM_DEPENDENCY_FILENAME,
@@ -56,7 +56,6 @@ from crosspm.helpers.downloader import Downloader
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.locker import Locker
 from crosspm.helpers.locker2 import Locker2
-from crosspm.helpers.python import get_object_from_string
 from crosspm.helpers.usedby import Usedby
 
 app_name = 'CrossPM (Cross Package Manager) version: {version} The MIT License (MIT)'.format(version=version)
