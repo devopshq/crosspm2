@@ -8,8 +8,6 @@ import os
 import shutil
 from artifactory import ArtifactoryPath
 
-from crosspm.helpers.archive import Archive
-
 # import only for TypeHint
 try:
     from crosspm.helpers.downloader import Downloader  # noqa: F401

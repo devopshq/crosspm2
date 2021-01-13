@@ -42,7 +42,6 @@ import logging
 import os
 import sys
 import time
-from crosspm.helpers.archive import Archive
 from docopt import docopt
 
 from crosspm import version
@@ -51,7 +50,6 @@ from crosspm.helpers.config import (
     CROSSPM_DEPENDENCY_FILENAME,
     Config,
 )
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.downloader import Downloader
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.locker import Locker

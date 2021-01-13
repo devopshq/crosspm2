@@ -188,7 +188,6 @@ class Config:
 
         self.no_fails = no_fails
         self.parse_config(config_data, cmdline)
-        self.cache = Cache(self, self.cache_config)
         # self._fails = {}
 
     def get_cpm_conf_name(self, deps_filename=''):

@@ -10,7 +10,6 @@ import shutil
 from artifactory import ArtifactoryPath
 
 from crosspm.helpers.config import CROSSPM_DEPENDENCY_FILENAME, CROSSPM_DEPENDENCY_LOCK_FILENAME, Config  # noqa
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.package import Package
 from crosspm.helpers.parser import Parser
