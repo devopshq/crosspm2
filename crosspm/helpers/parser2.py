@@ -4,7 +4,6 @@ from pathlib import PurePath
 
 from crosspm.contracts.package_version import PackageVersion
 from dohq_common.package_parsers.debian_package_name_parser import DebianPackageNameParser
-from dohq_common.deps_txt.deps_txt_simple import DepsTxtSimpleReader
 
 
 class Parser2():
@@ -13,17 +12,6 @@ class Parser2():
         self._name = 'repo2'
         self._rules = {}
         self._rules['path'] = [data['path']]
-
-    def iter_packages_params(self, list_or_file_path, deps_content=None):
-        with open(list_or_file_path, 'r', encoding="utf-8-sig") as f:
-            for i, line in enumerate(f):
-                line = line.strip()
-
-    def iter_packages_params(self, deps_txt_path, deps_content=None):
-        package_matches = DepsTxtSimpleReader(deps_txt_path).package_matches
-        for pm in package_matches:
-            res = {'package': pm.package_name, 'version': pm.version_pattern, 'contracts': pm.contracts, 'server': None, 'repo': None}
-            yield res
 
 
     def get_vars(self):

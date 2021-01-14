@@ -46,34 +46,18 @@ class Downloader(Command):
 
     # Get list of all packages needed to resolve all the dependencies.
     # List of Package class instances.
-    def get_dependency_packages(self, list_or_file_path=None, property_validate=True):
-        """
-        :param list_or_file_path:
-        :param property_validate: for `root` packages we need check property, bad if we find packages from `lock` file,
-        we can skip validate part
-        """
-        if list_or_file_path is None:
-            list_or_file_path = self._depslock_path
-            if not os.path.isfile(list_or_file_path):
-                list_or_file_path = self._deps_path
+    def get_dependency_packages(self, package_matches, property_validate=True):
 
         _packages = OrderedDict()
-        if isinstance(list_or_file_path, str):
-            self._log.info('Reading dependencies ... [%s]', list_or_file_path)
+
         for i, _src in enumerate(self._config.sources()):
-            if i > 0:
-                self._log.info('')
-                self._log.info('Next source ...')
-            _found_packages = _src.get_packages(self, list_or_file_path, property_validate)
+            self._log.info('')
+            self._log.info(f'source: {_src}')
+
+            _found_packages = _src.get_packages(self, package_matches, property_validate)
+
             _packages.update(
                 OrderedDict([(k, v) for k, v in _found_packages.items() if _packages.get(k, None) is None]))
-            if not self._config.no_fails:
-                if isinstance(list_or_file_path, (list, tuple)):
-                    list_or_file_path = [x for x in list_or_file_path if
-                                         _packages.get(x[self._config.name_column], None) is None]
-                elif isinstance(list_or_file_path, dict) and isinstance(list_or_file_path.get('raw', None), list):
-                    list_or_file_path['raw'] = [x for x in list_or_file_path['raw'] if
-                                                _packages.get(x[self._config.name_column], None) is None]
 
         return _packages
 

@@ -93,7 +93,7 @@ class Config:
     windows = WINDOWS
 
     def __init__(self, config_file_name='', cmdline='', no_fails=False, output_path='', depslock_path='', deps_path='',
-                 lock_on_success=False, prefer_local=False, trigger_package=None):
+                 lock_on_success=False, prefer_local=False, trigger_package_str=None):
         self._log = logging.getLogger('crosspm')
         self._config_path_env = []
         self._sources = []
@@ -114,10 +114,10 @@ class Config:
         self.prefer_local = prefer_local
 
         try:
-            if trigger_package:
-                self.trigger_package = crosspm.contracts.package.Package.create_package_debian(trigger_package)
+            if trigger_package_str:
+                self.trigger_packages = create_list_of_trigger_packages(trigger_package_str)
             else:
-                self.trigger_package = None
+                self.trigger_packages = []
         except packaging.version.InvalidVersion:
             raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH,
                                    f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
@@ -778,3 +778,7 @@ class Config:
         if not result:
             result = 'C:'
         return result
+
+def create_list_of_trigger_packages(trigger_package_str):
+    return [crosspm.contracts.package.Package.create_package_debian(tp.strip()) \
+            for tp in trigger_package_str.strip().split(',')]

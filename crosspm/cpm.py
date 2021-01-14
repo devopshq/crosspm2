@@ -28,6 +28,7 @@ Options:
     --dependencies-content=CONTENT       Content for dependencies.txt file
     --dependencies-lock-content=CONTENT  Content for dependencies.txt.lock file
     --lock-on-success                    Save file with locked dependencies next to original one if download succeeds
+    --output-path=PATH                   Path to download files to when download command set ['']     
     --no-fails                           Ignore fails config if possible.
     --recursive=VALUE                    Process all packages recursively to find and lock all dependencies
     --prefer-local                       Do not search package if exist in cache

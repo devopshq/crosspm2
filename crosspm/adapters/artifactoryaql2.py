@@ -10,6 +10,7 @@ from artifactory import ArtifactoryPath
 import crosspm.contracts.package
 from crosspm import InvalidPackage
 from crosspm.adapters.artifactoryaql import ArtifactoryAql
+from crosspm.adapters.common import BaseAdapter
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
@@ -26,18 +27,9 @@ setup = {
 session = requests.Session()
 
 
-class ArtifactoryAql2(ArtifactoryAql):
-    def get_packages(self, source, parser, downloader, list_or_file_path, property_validate=True):
-        """
-
-        :param source:
-        :param parser:
-        :param downloader:
-        :param list_or_file_path:
-        :param property_validate: for `root` packages we need check property, bad if we find packages from `lock` file,
-        we can skip validate part
-        :return:
-        """
+class ArtifactoryAql2(BaseAdapter):
+    def get_packages(self, source, parser, downloader, packages_matches, property_validate=True):
+        # TODO move request debug and thhp debug into comanline option
         # http.client.HTTPConnection.debuglevel = 1
         # requests_log = logging.getLogger("requests.packages.urllib3")
         # requests_log.setLevel(logging.DEBUG)
@@ -50,7 +42,7 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         repo_returned_packages_all = []
 
-        for _path in source.get_paths(list_or_file_path['raw']):
+        for _path in source.get_paths(packages_matches):
 
             _tmp_params = Dict(_path.params)
             self._log.info('repo: {}'.format(_tmp_params.repo))
@@ -79,10 +71,10 @@ class ArtifactoryAql2(ArtifactoryAql):
                 if _package_versions_with_all_contracts:
                     repo_returned_packages_all += _package_versions_with_all_contracts
 
-        package_names = [x[self._config.name_column] for x in list_or_file_path['raw']]
+        package_names = [x.package_name for x in packages_matches]
 
         bundle = Bundle(package_names, repo_returned_packages_all,
-                        downloader._config.trigger_package)
+                        downloader._config.trigger_packages)
 
         bundle_packages = bundle.calculate().values()
 
@@ -186,7 +178,7 @@ def remove_package_versions_with_missing_contracts(package_versions, contracts):
 
     for p in package_versions:
         package_version_missing_contracts = []
-        for c in contracts.strip().split(';'):
+        for c in contracts:
             if not p.has_contract(c):
                 package_version_missing_contracts += [c]
 
