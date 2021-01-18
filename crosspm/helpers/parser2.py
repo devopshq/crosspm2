@@ -13,7 +13,6 @@ class Parser2():
         self._rules = {}
         self._rules['path'] = [data['path']]
 
-
     def get_vars(self):
         return ['server', 'repo', 'package', 'version']
 
@@ -33,7 +32,6 @@ class Parser2():
 
     def merge_with_mask(self, column, value):
         return value
-
 
     @staticmethod
     def split_fixed_pattern_with_file_name(path):

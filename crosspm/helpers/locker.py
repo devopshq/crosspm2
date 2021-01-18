@@ -29,11 +29,11 @@ class Locker(Downloader):
 
         self._log.info('Writing lock file [{}]'.format(depslock_file_path))
 
-        output_params = {
-            'out_format': 'lock',
-            'output': depslock_file_path,
-        }
-        Output(config=self._config).write_output(output_params, self._root_package.packages)
+        # output_params = {
+        #     'out_format': 'lock',
+        #     'output': depslock_file_path,
+        # }
+        # Output(config=self._config).write_output(output_params, self._root_package.packages)
         self._log.info('Done!')
 
     def entrypoint(self, *args, **kwargs):

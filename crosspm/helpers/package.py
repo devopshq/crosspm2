@@ -134,11 +134,9 @@ class Package:
         self.packages = self._downloader.get_usedby_packages({'raw': self._raw},
                                                              property_validate=property_validate)
 
-
     @property
     def stat(self):
         return self.art_package.pkg_stat()
-
 
     def get_params(self, param_list=None, get_path=False, merged=False, raw=False):
         """

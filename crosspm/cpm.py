@@ -310,7 +310,6 @@ class CrossPM:
 
     @do_run
     def command(self, command_):
-        params = {}
 
         do_load = not self._args['--list']
         # hack for Locker
