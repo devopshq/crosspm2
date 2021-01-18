@@ -131,7 +131,6 @@ class Config:
         self.output_path = output_path
         cpm_conf_name = ''
 
-
         if deps_path:
             deps_path = deps_path.strip().strip('"').strip("'")
             self.deps_path = os.path.realpath(os.path.expanduser(deps_path))
@@ -148,7 +147,6 @@ class Config:
             config_path_tmp = deps_path
         if config_path_tmp not in DEFAULT_CONFIG_PATH:
             DEFAULT_CONFIG_PATH.append(config_path_tmp)
-
 
         if not cpm_conf_name:
             cpm_conf_name = self.get_cpm_conf_name(depslock_path)
@@ -779,6 +777,7 @@ class Config:
             result = 'C:'
         return result
 
+
 def create_list_of_trigger_packages(trigger_package_str):
-    return [crosspm.contracts.package.Package.create_package_debian(tp.strip()) \
+    return [crosspm.contracts.package.Package.create_package_debian(tp.strip())
             for tp in trigger_package_str.strip().split(',')]

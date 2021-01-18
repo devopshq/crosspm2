@@ -40,7 +40,6 @@ class Downloader(Command):
         depslock_path = config.depslock_path.strip().strip('"').strip("'")
         self._depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
 
-
     def update_progress(self, msg, progress):
         self._log.info('\r{0} [{1:10}] {2}%'.format(msg, '#' * int(float(progress) / 10.0), int(progress)))
 

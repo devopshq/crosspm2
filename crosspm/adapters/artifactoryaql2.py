@@ -9,7 +9,6 @@ from artifactory import ArtifactoryPath
 
 import crosspm.contracts.package
 from crosspm import InvalidPackage
-from crosspm.adapters.artifactoryaql import ArtifactoryAql
 from crosspm.adapters.common import BaseAdapter
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
@@ -109,7 +108,7 @@ class ArtifactoryAql2(BaseAdapter):
 
                     self._log.debug(f"  valid: {str(art_path)}")
 
-                except PackageInvalidVersion as e:
+                except PackageInvalidVersion:
                     pass
                 except packaging.version.InvalidVersion as e:
                     packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
