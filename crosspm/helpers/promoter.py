@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import fnmatch
+
 import logging
 import os
-
 # third-party
 import requests
 

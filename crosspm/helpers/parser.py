@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import copy
 import fnmatch
+
 import itertools
 import logging
 import os
 import re
 
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 
 
@@ -1064,7 +1064,7 @@ https://repo.example.com/artifactory/libs-cpp-release.snapshot/boost/1.60-pm/*.*
 
     def validate_glob_pattern_match(self, _new_path, _path, _res, _sym):
         if '/**/' == _sym:
-            re_str = '(.*)\/'
+            re_str = '(.*)\\/'
         else:
             re_str = fnmatch.translate(_sym)
         # \/pool\/.*\/\Z(?ms) => \/pool\/.*\/
@@ -1075,5 +1075,3 @@ https://repo.example.com/artifactory/libs-cpp-release.snapshot/boost/1.60-pm/*.*
         _new_path += found_str
         _res = True
         return _new_path, _path, _res
-
-

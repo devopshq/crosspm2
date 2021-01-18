@@ -1,11 +1,9 @@
-from pathlib import PurePath
-
 import dateutil
 from addict import Dict
 
 from crosspm.contracts.contract import Contract
 from crosspm.contracts.package_version import PackageVersion
-from crosspm.package_parsers.debian_package_name_parser import DebianPackageNameParser
+from dohq_common.package_parsers.debian_package_name_parser import DebianPackageNameParser
 
 PACKAGE_PROPERTY_CONTRACT_PREFFIX = 'contracts.'
 
@@ -112,6 +110,20 @@ def parse_contracts_from_package_properties(properties):
     return contracts
 
 
+def is_packages_contracts_graph_resolvable(packages):
+    contracts = {}
+
+    for p in packages:
+        contracts_intersection = contracts.keys() & p.contracts.keys()
+        for c in contracts_intersection:
+            if not p.contracts[c] == contracts[c]:
+                return False
+
+        contracts.update(p.contracts)
+
+    return True
+
+
 class ArtifactoryPackage(Package):
     def __init__(self, art_path, name, version, contracts):
         super(ArtifactoryPackage, self).__init__(name, version,
@@ -124,10 +136,5 @@ class ArtifactoryPackage(Package):
 
     def pkg_stat(self):
         if not self.stat_pkg:
-            stat = self.art_path.stat()
-            stat_pkg = {
-                'ctime': stat.ctime,
-                'mtime': stat.mtime,
-                'size': stat.size
-            }
+            self.stat = self.art_path.stat()
         return self.stat_pkg

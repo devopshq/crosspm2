@@ -17,12 +17,15 @@ class Source:
         self.args = Dict({k: v for k, v in data.items() if k not in ['type', 'parser']})
         self.path_patterns = parser._rules['path']
 
+    def __str__(self):
+        return f"{self.args['repo']} --> {self.path_patterns}"
+
     @property
     def repos(self):
         return self.args['repo']
 
-    def get_packages(self, downloader, list_or_file_path, property_validate=True):
-        return self._adapter.get_packages(self, self._parser, downloader, list_or_file_path, property_validate)
+    def get_packages(self, downloader, packages_matches, property_validate=True):
+        return self._adapter.get_packages(self, self._parser, downloader, packages_matches, property_validate)
 
     def get_usedby(self, downloader, list_or_file_path, property_validate=True):
         return self._adapter.get_usedby(self, self._parser, downloader, list_or_file_path, property_validate)
@@ -41,16 +44,16 @@ class Source:
 
         return res
 
-    def get_paths(self, packages_to_find):
+    def get_paths(self, packages_matches):
         paths = []
 
-        for package, repo, path_pattern in itertools.product(packages_to_find, self.repos, self.path_patterns):
+        for pm, repo, path_pattern in itertools.product(packages_matches, self.repos, self.path_patterns):
             params = {
                 'server': self.args['server'],
                 'repo': repo,
-                'package': package['package'],
-                'version': package['version'],
-                'contracts': package.get('contracts')
+                'package': pm.package_name,
+                'version': pm.version_pattern,
+                'contracts': pm.contracts
             }
             paths.append(Dict({'path': path_pattern.format(**params), 'params': params}))
 

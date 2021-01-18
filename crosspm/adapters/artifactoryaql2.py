@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-import http.client
-import json
-import logging
 from collections import OrderedDict
 
+import json
 import packaging
 import requests
 from addict import Dict
@@ -11,10 +9,11 @@ from artifactory import ArtifactoryPath
 
 import crosspm.contracts.package
 from crosspm import InvalidPackage
-from crosspm.adapters.artifactoryaql import ArtifactoryAql
+from crosspm.adapters.common import BaseAdapter
 from crosspm.contracts.bundle import Bundle
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
+from dohq_common.exceptions import PackageInvalidVersion
 
 CHUNK_SIZE = 1024
 
@@ -27,18 +26,9 @@ setup = {
 session = requests.Session()
 
 
-class ArtifactoryAql2(ArtifactoryAql):
-    def get_packages(self, source, parser, downloader, list_or_file_path, property_validate=True):
-        """
-
-        :param source:
-        :param parser:
-        :param downloader:
-        :param list_or_file_path:
-        :param property_validate: for `root` packages we need check property, bad if we find packages from `lock` file,
-        we can skip validate part
-        :return:
-        """
+class ArtifactoryAql2(BaseAdapter):
+    def get_packages(self, source, parser, downloader, packages_matches, property_validate=True):
+        # TODO move request debug and thhp debug into comanline option
         # http.client.HTTPConnection.debuglevel = 1
         # requests_log = logging.getLogger("requests.packages.urllib3")
         # requests_log.setLevel(logging.DEBUG)
@@ -46,16 +36,12 @@ class ArtifactoryAql2(ArtifactoryAql):
 
         _art_auth_etc = source.get_auth_params()
 
-        _pkg_name_column = self._config.name_column
-        _secret_variables = self._config.secret_variables
         _packages_found = OrderedDict()
-        _packed_exist = False
-        _packed_cache_params = None
         self._log.info('parser: {}'.format(parser._name))
 
         repo_returned_packages_all = []
 
-        for _path in source.get_paths(list_or_file_path['raw']):
+        for _path in source.get_paths(packages_matches):
 
             _tmp_params = Dict(_path.params)
             self._log.info('repo: {}'.format(_tmp_params.repo))
@@ -71,10 +57,7 @@ class ArtifactoryAql2(ArtifactoryAql):
                                            aql,
                                            _tmp_params.repo)
 
-            _package = None
-
             if _package_versions_with_contracts:
-
                 _package_versions_with_all_contracts, package_versions_with_missing_contracts = \
                     remove_package_versions_with_missing_contracts(
                         _package_versions_with_contracts,
@@ -87,10 +70,10 @@ class ArtifactoryAql2(ArtifactoryAql):
                 if _package_versions_with_all_contracts:
                     repo_returned_packages_all += _package_versions_with_all_contracts
 
-        package_names = [x[self._config.name_column] for x in list_or_file_path['raw']]
+        package_names = [x.package_name for x in packages_matches]
 
         bundle = Bundle(package_names, repo_returned_packages_all,
-                        downloader._config.trigger_package)
+                        downloader._config.trigger_packages)
 
         bundle_packages = bundle.calculate().values()
 
@@ -106,7 +89,6 @@ class ArtifactoryAql2(ArtifactoryAql):
                 _packages_found[p.name] = None
 
         return _packages_found
-
 
     def find_package_versions(self, _file_name_pattern,
                               _path_pattern, aql, search_repo):
@@ -126,6 +108,8 @@ class ArtifactoryAql2(ArtifactoryAql):
 
                     self._log.debug(f"  valid: {str(art_path)}")
 
+                except PackageInvalidVersion:
+                    pass
                 except packaging.version.InvalidVersion as e:
                     packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
                     self._log.warn(f"{e} for {art_path}")
@@ -183,8 +167,8 @@ def print_packages_by_contracts_scheme(logger, packages):
     for p in packages:
         logger.info(f"  {p}")
 
-def remove_package_versions_with_missing_contracts(package_versions, contracts):
 
+def remove_package_versions_with_missing_contracts(package_versions, contracts):
     if not contracts:
         return package_versions, {}
 
@@ -193,7 +177,7 @@ def remove_package_versions_with_missing_contracts(package_versions, contracts):
 
     for p in package_versions:
         package_version_missing_contracts = []
-        for c in contracts.strip().split(';'):
+        for c in contracts:
             if not p.has_contract(c):
                 package_version_missing_contracts += [c]
 

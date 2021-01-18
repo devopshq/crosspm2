@@ -173,8 +173,6 @@ class Adapter(BaseAdapter):
                     _packages = [_packages]
 
                 if len(_packages) == 1:
-                    _stat_pkg = self.pkg_stat(_packages[0]['path'])
-
                     _params_raw = _params_found_raw.get(_packages[0]['path'], {})
                     _params_tmp = _params_found.get(_packages[0]['path'], {})
                     _params_tmp.update({k: v for k, v in _packages[0]['params'].items() if k not in _params_tmp})

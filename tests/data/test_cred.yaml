@@ -1,4 +1,0 @@
-.aliases:
-  - &auth1
-      - test_user
-      - test-passwd

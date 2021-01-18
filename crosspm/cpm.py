@@ -28,10 +28,7 @@ Options:
     --dependencies-content=CONTENT       Content for dependencies.txt file
     --dependencies-lock-content=CONTENT  Content for dependencies.txt.lock file
     --lock-on-success                    Save file with locked dependencies next to original one if download succeeds
-    --out-format=TYPE                    Output data format. Available formats:({out_format}) [default: {out_format_default}]
-    --output=FILE                        Output file name (required if --out_format is not stdout)
-    --output-template=FILE               Template path, e.g. nuget.packages.config.j2 (required if --out_format=jinja)
-    --output-path=PATH                   Path to download files to when download command set [''] 
+    --output-path=PATH                   Path to download files to when download command set ['']     
     --no-fails                           Ignore fails config if possible.
     --recursive=VALUE                    Process all packages recursively to find and lock all dependencies
     --prefer-local                       Do not search package if exist in cache
@@ -40,29 +37,24 @@ Options:
 
 """  # noqa
 
+import shlex
+
 import logging
 import os
-import shlex
 import sys
 import time
-
-import requests
 from docopt import docopt
 
 from crosspm import version
-from crosspm.helpers.archive import Archive
 from crosspm.helpers.config import (
     CROSSPM_DEPENDENCY_LOCK_FILENAME,
     CROSSPM_DEPENDENCY_FILENAME,
     Config,
 )
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.downloader import Downloader
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.locker import Locker
 from crosspm.helpers.locker2 import Locker2
-from crosspm.helpers.output import Output
-from crosspm.helpers.python import get_object_from_string
 from crosspm.helpers.usedby import Usedby
 
 app_name = 'CrossPM (Cross Package Manager) version: {version} The MIT License (MIT)'.format(version=version)
@@ -111,9 +103,7 @@ class CrossPM:
                                     verb_level=Config.get_verbosity_level(),
                                     log_default=Config.get_verbosity_level(0, True),
                                     deps_default=CROSSPM_DEPENDENCY_FILENAME,
-                                    deps_lock_default=CROSSPM_DEPENDENCY_LOCK_FILENAME,
-                                    out_format=Output.get_output_types(),
-                                    out_format_default='stdout',
+                                    deps_lock_default=CROSSPM_DEPENDENCY_LOCK_FILENAME
                                     )
         self._args = docopt(docopt_str,
                             argv=args,
@@ -221,13 +211,10 @@ class CrossPM:
             _depslock_path = _deps_path + '.lock'
 
         self._config = Config(self._args['--config'], self._args['--options'], self._args['--no-fails'],
-                              self._args['--output-path'],
+                              "",
                               _depslock_path, _deps_path,
                               self._args['--lock-on-success'], self._args['--prefer-local'],
                               self._args['--trigger-package'])
-
-
-        self._output = Output(self._config.output('result', None), self._config.name_column, self._config)
 
     def exit(self, code, msg):
         self._log.critical(msg)
@@ -249,17 +236,6 @@ class CrossPM:
             else:
                 recursive = self._args['--recursive']
         return recursive
-
-    @do_run
-    def check_common_args(self):
-        if self._args['--output']:
-            output = self._args['--output'].strip().strip("'").strip('"')
-            output_abs = os.path.abspath(output)
-            if os.path.isdir(output_abs):
-                raise CrosspmExceptionWrongArgs(
-                    '"%s" is a directory - can\'t write to it'
-                )
-            self._args['--output'] = output
 
     @do_run
     def set_logging_level(self):
@@ -311,23 +287,21 @@ class CrossPM:
 
             errorcode, msg = self.set_logging_level()
             self._log.info(app_name)
-            errorcode, msg = self.check_common_args()
-            if errorcode == 0:
-                errorcode, msg = self.read_config()
+            errorcode, msg = self.read_config()
 
-                if errorcode == 0:
-                    if self._args['download']:
-                        errorcode, msg = self.command(self.command_)
-                    elif self._args['lock']:
-                        errorcode, msg = self.command(self.command_)
-                    elif self._args['lock2']:
-                        errorcode, msg = self.command(self.command_)
-                    elif self._args['usedby']:
-                        errorcode, msg = self.command(self.command_)
-                    elif self._args['pack']:
-                        errorcode, msg = self.pack()
-                    elif self._args['cache']:
-                        errorcode, msg = self.cache()
+            if errorcode == 0:
+                if self._args['download']:
+                    errorcode, msg = self.command(self.command_)
+                elif self._args['lock']:
+                    errorcode, msg = self.command(self.command_)
+                elif self._args['lock2']:
+                    errorcode, msg = self.command(self.command_)
+                elif self._args['usedby']:
+                    errorcode, msg = self.command(self.command_)
+                elif self._args['pack']:
+                    errorcode, msg = self.pack()
+                elif self._args['cache']:
+                    errorcode, msg = self.cache()
         else:
             errorcode, msg = CROSSPM_ERRORCODE_WRONG_ARGS, self._args
         time_end = time.time()
@@ -336,51 +310,6 @@ class CrossPM:
 
     @do_run
     def command(self, command_):
-        if self._return_result:
-            params = {}
-        else:
-            if self._args['--out-format'] == 'stdout':
-                if self._args['--output']:
-                    raise CrosspmExceptionWrongArgs(
-                        "unwanted argument '--output' while argument '--out-format={}'".format(
-                            self._args['--out-format'],
-                        ))
-            elif not self._args['--output']:
-                raise CrosspmExceptionWrongArgs(
-                    "argument '--output' required when argument '--out-format={}'".format(
-                        self._args['--out-format'],
-                    ))
-
-            params = {
-                'out_format': ['--out-format', ''],
-                'output': ['--output', ''],
-                'output_template': ['--output-template', ''],
-                # 'out_prefix': ['--out-prefix', ''],
-                # 'depslock_path': ['--depslock-path', ''],
-            }
-
-            for k, v in params.items():
-                params[k] = self._args[v[0]] if v[0] in self._args else v[1]
-                if isinstance(params[k], str):
-                    params[k] = params[k].strip('"').strip("'")
-
-            # try to dynamic load --output-template from python module
-            output_template = params['output_template']
-            if output_template:
-                # Try to load from python module
-                module_template = get_object_from_string(output_template)
-                if module_template is not None:
-                    self._log.debug(
-                        "Found output template path '{}' from '{}'".format(module_template, output_template))
-                    params['output_template'] = module_template
-                else:
-                    self._log.debug("Output template '{}' use like file path".format(output_template))
-
-            # check template exist
-            output_template = params['output_template']
-            if output_template and not os.path.exists(output_template):
-                raise CrosspmException(CROSSPM_ERRORCODE_CONFIG_NOT_FOUND,
-                                       "Can not find template '{}'".format(output_template))
 
         do_load = not self._args['--list']
         # hack for Locker
@@ -392,9 +321,7 @@ class CrossPM:
 
         if self._return_result:
             return self._return(cpm_)
-        else:
-            # self._output.write(params, packages)
-            self._output.write_output(params, cpm_.get_tree_packages())
+
         return ''
 
     def _return(self, cpm_downloader):
