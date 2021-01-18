@@ -7,7 +7,6 @@ import logging
 import os
 import re
 
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 
 

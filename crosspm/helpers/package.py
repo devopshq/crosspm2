@@ -8,9 +8,9 @@ import os
 import shutil
 from artifactory import ArtifactoryPath
 
-from crosspm.helpers.archive import Archive
-
 # import only for TypeHint
+from dohq_common.deps_txt.deps_txt_simple import DepsTxtSimpleReader
+
 try:
     from crosspm.helpers.downloader import Downloader  # noqa: F401
 except ImportError:
@@ -112,9 +112,9 @@ class Package:
         we can skip validate part
         :return:
         """
-        self._raw = [x for x in
-                     self._downloader.common_parser.iter_packages_params(depslock_file_path, deps_content=deps_content)]
-        self.packages = self._downloader.get_dependency_packages({'raw': self._raw},
+        self._raw = DepsTxtSimpleReader(depslock_file_path).package_matches
+
+        self.packages = self._downloader.get_dependency_packages(self._raw,
                                                                  property_validate=property_validate)
 
     def find_usedby(self, depslock_file_path, property_validate=True):
@@ -134,73 +134,11 @@ class Package:
         self.packages = self._downloader.get_usedby_packages({'raw': self._raw},
                                                              property_validate=property_validate)
 
-    def unpack(self, force=False):
-        if self._downloader.solid(self):
-            self.unpacked_path = self.packed_path
-        else:
-            exists, dest_path = self._downloader.cache.exists_unpacked(package=self, pkg_path=self.unpacked_path)
-            if exists and not self.unpacked_path:
-                self.unpacked_path = dest_path
-
-            # if force or not exists:
-
-            # if not dest_path:
-            #     dest_path = self._downloader.unpacked_path
-            # temp_path = os.path.realpath(os.path.join(dest_path, self._name))
-            # _exists = os.path.exists(temp_path)
-            if not self._not_cached:
-                self.unpacked_path = dest_path if exists else ''  # temp_path if exists else ''
-            if force or self._not_cached or (not exists):
-                Archive.extract(self.packed_path, dest_path)  # temp_path)
-                self.unpacked_path = dest_path  # temp_path
-                self._not_cached = False
 
     @property
     def stat(self):
         return self.art_package.pkg_stat()
 
-    def pack(self, src_path):
-        Archive.create(self.packed_path, src_path)
-
-    def print(self, level=0, output=None):
-        def do_print(left):
-            res_str = ''
-            for out_item in output:
-                for k, v in out_item.items():
-                    cur_str = self.get_params(merged=True).get(k, '')
-                    if not res_str:
-                        cur_str = self._params.get(k, '')
-                    if not res_str:
-                        res_str = '{}{}'.format(left, cur_str)
-                        continue
-                    cur_format = ' {}'
-                    if v > 0:
-                        cur_format = '{:%s}' % (v if len(cur_str) <= v else v + len(left))
-                    res_str += cur_format.format(cur_str)
-                    break
-            self._log.info(res_str)
-
-        _sign = ' '
-        if not self._root:
-            if self.duplicated:
-                _sign = '!'
-            elif self.unpacked_path:
-                _sign = '+'
-            elif self.packed_path:
-                _sign = '>'
-            else:
-                _sign = '-'
-        _left = '{}{}'.format(' ' * 4 * level, _sign)
-        do_print(_left)
-        for _pkg_name in self.packages:
-            _pkg = self.packages[_pkg_name]
-            if not _pkg:
-                _left = '{}-'.format(' ' * 4 * (level + 1))
-                self._log.info('{}{}'.format(_left, _pkg_name))
-            else:
-                _pkg.print(level + 1, output)
-        if self._root:
-            self._log.info('')
 
     def get_params(self, param_list=None, get_path=False, merged=False, raw=False):
         """
