@@ -39,7 +39,7 @@ from crosspm.adapters.artifactoryaql2 import remove_package_versions_with_missin
 )
 def test_remove_package_versions_with_missing_contracts(test_case):
     package_versions = [Package.create_package(x) for x in test_case['package_versions']]
-    package_contracts = test_case['package_contracts']
+    package_contracts = test_case['package_contracts'].strip().split(';')
     expected_packages_with_all_contracts = [Package.create_package(x) for x in test_case['packages_with_all_contracts']]
     expected_packages_with_missing_contracts = {Package.create_package(p): c for p, c in test_case['packages_with_missing_contracts'].items()}
 
