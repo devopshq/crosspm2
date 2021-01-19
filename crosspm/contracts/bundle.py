@@ -85,9 +85,9 @@ class Bundle:
             return
 
         raise CrosspmBundleNoValidContractsGraph(f"cant select next package for current contracts:\n"
-                                                 "next_packages_out_of_current_contracts : {next_packages_out_of_current_contracts}\n"
-                                                 "rest_packages_to_find : {rest_packages_to_find}\n"
-                                                 "bundle.packages : {self._packages}")
+                                                 f"next_packages_out_of_current_contracts : {next_packages_out_of_current_contracts}\n"
+                                                 f"rest_packages_to_find : {rest_packages_to_find}\n"
+                                                 f"bundle.packages : {self._packages}")
 
     def select_next_microservice_package_out_of_current_contracts(self, next_packages_out_of_current_contracts,
                                                                   select_order):
