@@ -48,3 +48,6 @@ def test_remove_package_versions_with_missing_contracts(test_case):
 
     assert packages_with_all_contracts == expected_packages_with_all_contracts
     assert packages_with_missing_contracts == expected_packages_with_missing_contracts
+
+def test_find_package_versions():
+    find_package_versions("be_*_*.deb", "**", "http://repo/artifactory", "crosspm")

@@ -4,6 +4,7 @@ from collections import OrderedDict
 import json
 import packaging
 import requests
+import logging
 from addict import Dict
 from artifactory import ArtifactoryPath
 
@@ -25,6 +26,7 @@ setup = {
 
 session = requests.Session()
 
+log = logging.getLogger('crosspm')
 
 class ArtifactoryAql2(BaseAdapter):
     def get_packages(self, source, parser, downloader, packages_matches, property_validate=True):
@@ -51,11 +53,11 @@ class ArtifactoryAql2(BaseAdapter):
 
             _path_fixed, _path_pattern, _file_name_pattern = parser.split_fixed_pattern_with_file_name(_path.path)
 
+            query = prepare_aql_query(_file_name_pattern, _path_pattern, _tmp_params.repo)
+            artifacts = aql.aql(query)
+
             _package_versions_with_contracts, packages_with_invalid_naming_convention = \
-                self.find_package_versions(_file_name_pattern,
-                                           _path_pattern,
-                                           aql,
-                                           _tmp_params.repo)
+                find_package_versions(aql, artifacts)
 
             if _package_versions_with_contracts:
                 _package_versions_with_all_contracts, package_versions_with_missing_contracts = \
@@ -90,78 +92,75 @@ class ArtifactoryAql2(BaseAdapter):
 
         return _packages_found
 
-    def find_package_versions(self, _file_name_pattern,
-                              _path_pattern, aql, search_repo):
-        try:
-            packages_with_invalid_naming_convention = []
-            package_versions_with_contracts = []
 
-            query = self.prepare_aql_query(_file_name_pattern, _path_pattern, search_repo)
-            artifacts = aql.aql(query)
 
-            for art_path in map(aql.from_aql, artifacts):
-                try:
+def try_parse_http_error(self, e):
+    try:
+        err = json.loads(e.args[0])
+    except Exception:
+        err = {}
+    if isinstance(err, dict):
+        # Check errors
+        # :e.args[0]: {
+        #                 "errors" : [ {
+        #                     "status" : 404,
+        #                     "message" : "Not Found"
+        #                  } ]
+        #             }
+        for error in err.get('errors', []):
+            err_status = error.get('status', -1)
+            err_msg = error.get('message', '')
 
-                    package_with_contracts = crosspm.contracts.package.create_artifactory_package(art_path)
+            log.error('Error[{}]{}'.format(err_status,
+                                                 (': {}'.format(err_msg)) if err_msg else ''))
 
-                    package_versions_with_contracts.append(package_with_contracts)
 
-                    self._log.debug(f"  valid: {str(art_path)}")
+def find_package_versions(aql, artifacts):
+    try:
+        packages_with_invalid_naming_convention = []
+        package_versions_with_contracts = []
 
-                except PackageInvalidVersion:
-                    pass
-                except packaging.version.InvalidVersion as e:
-                    packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
-                    self._log.warn(f"{e} for {art_path}")
+        for art_path in map(aql.from_aql, artifacts):
+            try:
+                package_with_contracts = crosspm.contracts.package.create_artifactory_package(art_path)
 
-        except RuntimeError as e:
-            self.try_parse_http_error(e)
+                package_versions_with_contracts.append(package_with_contracts)
 
-        return package_versions_with_contracts, packages_with_invalid_naming_convention
+                log.debug(f"  valid: {str(art_path)}")
 
-    def prepare_aql_query(self, _file_name_pattern, _path_pattern, _search_repo):
-        # Get AQL path pattern, with fixed part path, without artifactory url and repository name
-        _aql_path_pattern = ""
-        if _path_pattern:
-            _aql_path_pattern = _path_pattern
-        _aql_query_dict = {
-            "repo": {
-                "$eq": _search_repo,
-            },
-            "path": {
-                "$match": _aql_path_pattern,
-            },
-            "name": {
-                "$match": _file_name_pattern,
-            },
-        }
-        # Remove path if is empty string
-        if not _aql_path_pattern:
-            _aql_query_dict.pop('path')
-        query = f'items.find({json.dumps(_aql_query_dict)}).include("*", "property")'
+            except PackageInvalidVersion:
+                pass
+            except packaging.version.InvalidVersion as e:
+                packages_with_invalid_naming_convention.append(InvalidPackage(art_path, e))
+                log.warning(f"{e} for {art_path}")
 
-        return query
+    except RuntimeError as e:
+        try_parse_http_error(e)
 
-    def try_parse_http_error(self, e):
-        try:
-            err = json.loads(e.args[0])
-        except Exception:
-            err = {}
-        if isinstance(err, dict):
-            # Check errors
-            # :e.args[0]: {
-            #                 "errors" : [ {
-            #                     "status" : 404,
-            #                     "message" : "Not Found"
-            #                  } ]
-            #             }
-            for error in err.get('errors', []):
-                err_status = error.get('status', -1)
-                err_msg = error.get('message', '')
+    return package_versions_with_contracts, packages_with_invalid_naming_convention
 
-                self._log.error('Error[{}]{}'.format(err_status,
-                                                     (': {}'.format(err_msg)) if err_msg else ''))
+def prepare_aql_query(_file_name_pattern, _path_pattern, _search_repo):
+    # Get AQL path pattern, with fixed part path, without artifactory url and repository name
+    _aql_path_pattern = ""
+    if _path_pattern:
+        _aql_path_pattern = _path_pattern
+    _aql_query_dict = {
+        "repo": {
+            "$eq": _search_repo,
+        },
+        "path": {
+            "$match": _aql_path_pattern,
+        },
+        "name": {
+            "$match": _file_name_pattern,
+        },
+    }
+    # Remove path if is empty string
+    if not _aql_path_pattern:
+        _aql_query_dict.pop('path')
+    query = f'items.find({json.dumps(_aql_query_dict)}).include("*", "property")'
 
+    return query
 
 def print_packages_by_contracts_scheme(logger, packages):
     for p in packages:

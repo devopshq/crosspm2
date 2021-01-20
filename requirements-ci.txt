@@ -6,3 +6,5 @@ pytest<=4.6.9; python_version < '3.5'
 pytest>=5.2; python_version >= '3.5'
 pytest-flask<1.0.0; python_version < '3.5'
 pytest-flask>=1.0.0; python_version >= '3.5'
+responses==0.10.15
+
