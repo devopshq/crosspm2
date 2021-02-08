@@ -105,7 +105,17 @@ def parse_contracts_from_package_properties(properties):
 
     for p in properties:
         if p.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
-            contracts[p] = properties[p].split(',')
+            contracts[p] = properties[p]
+
+    return contracts
+
+def parse_contracts_from_string(contracts_string):
+    contracts = Dict()
+
+    for cs in contracts_string.strip().split(';'):
+        contract, values = cs.strip().split('=')
+        if contract.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
+            contracts[contract] = [v.strip() for v in values.split(',')]
 
     return contracts
 
