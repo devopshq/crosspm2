@@ -34,9 +34,10 @@ Options:
     --prefer-local                       Do not search package if exist in cache
     --trigger-package=VALUE              ContractScheme. Package fullname and version, that triggers the build. This package must include into bundle or fail the build.
     --stdout                             Print info and debug message to STDOUT, error to STDERR. Otherwise - all messages to STDERR
+    --http-debug                         Make verbose logging of http and requests
 
 """  # noqa
-
+import http
 import shlex
 
 import logging
@@ -280,6 +281,26 @@ class CrossPM:
                 fh.setLevel(level)
                 fh.setFormatter(formatter)
                 self._log.addHandler(fh)
+
+        http_debug = self._args.get('--http-debug')
+        if http_debug:
+            # http.client.HTTPConnection.debuglevel = 1
+            requests_log = logging.getLogger("requests.packages.urllib3")
+            requests_log.setLevel(level)
+            requests_log.propagate = True
+
+            # httpclient_logger = logging.getLogger("http.client")
+            # httpclient_logger.setLevel(logging.DEBUG)
+            # httpclient_logger.propagate = True
+
+            def httpclient_log(*args):
+                requests_log.log(level, " ".join(args))
+
+            # mask the print() built-in in the http.client module to use
+            # logging instead
+            http.client.print = httpclient_log
+            # enable debugging
+            http.client.HTTPConnection.debuglevel = 1
 
     def run(self):
         time_start = time.time()

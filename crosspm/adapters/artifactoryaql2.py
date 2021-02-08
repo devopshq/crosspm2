@@ -30,11 +30,6 @@ log = logging.getLogger('crosspm')
 
 class ArtifactoryAql2(BaseAdapter):
     def get_packages(self, source, parser, downloader, packages_matches, property_validate=True):
-        # TODO move request debug and thhp debug into comanline option
-        # http.client.HTTPConnection.debuglevel = 1
-        # requests_log = logging.getLogger("requests.packages.urllib3")
-        # requests_log.setLevel(logging.DEBUG)
-        # requests_log.propagate = True
 
         _art_auth_etc = source.get_auth_params()
 

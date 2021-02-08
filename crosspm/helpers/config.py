@@ -112,15 +112,13 @@ class Config:
         self.deps_lock_file_name = 'dependencies.txt.lock'
         self.lock_on_success = lock_on_success
         self.prefer_local = prefer_local
-
+        self.trigger_packages = []
         try:
             if trigger_package_str:
                 self.trigger_packages = create_list_of_trigger_packages(trigger_package_str)
-            else:
-                self.trigger_packages = []
         except packaging.version.InvalidVersion:
             raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH,
-                                   f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
+                                   f'trigger-packages ({self.trigger_packages}) violates naming convension PEP-440, name it correctly')
 
         self.crosspm_cache_root = ''
         self.deps_path = ''
