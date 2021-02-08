@@ -6,18 +6,28 @@ from crosspm.helpers.exceptions import CrosspmBundleNoValidContractsGraph, Cross
 
 
 def packages_repo():
-    P_db_raw = [[('c.db', 1)], [('c.db', 2)], [('c.db', 3)], [('c.db', 4)]]
-    P_be_raw = [[('c.db', 1), ('c.rest', 1)], [('c.db', 2), ('c.rest', 1)],
-                [('c.db', 1), ('c.rest', 2)], [('c.db', 4), ('c.rest', 2)]]
-    P_ui_raw = [[('c.rest', 1)], [('c.rest', 2)], [('c.rest', 3)], [('c.rest', 4)]]
-    P_ncp_raw = [[], [], []]
+    packages =[
+        ('db', '1', 'contracts.db=1'),
+        ('db', '2', 'contracts.db=2'),
+        ('db', '3', 'contracts.db=3'),
+        ('db', '4', 'contracts.db=4'),
 
-    P_db = [Package.create_package(('db', ver, conts)) for (ver, conts) in enumerate(P_db_raw, start=1)]
-    P_be = [Package.create_package(('be', ver, conts)) for (ver, conts) in enumerate(P_be_raw, start=1)]
-    P_ui = [Package.create_package(('ui', ver, conts)) for (ver, conts) in enumerate(P_ui_raw, start=1)]
-    P_ncp = [Package.create_package(('ncp', ver, conts)) for (ver, conts) in enumerate(P_ncp_raw, start=1)]
+        ('be', '1', 'contracts.db=1;contracts.rest=1'),
+        ('be', '2', 'contracts.db=2;contracts.rest=1'),
+        ('be', '3', 'contracts.db=1;contracts.rest=2'),
+        ('be', '4', 'contracts.db=4;contracts.rest=2'),
 
-    packages_repo = P_db + P_be + P_ui + P_ncp
+        ('ui', '1', 'contracts.rest=1'),
+        ('ui', '2', 'contracts.rest=2'),
+        ('ui', '3', 'contracts.rest=3'),
+        ('ui', '4', 'contracts.rest=4'),
+
+        ('ncp', '1', ''),
+        ('ncp', '2', ''),
+        ('ncp', '3', ''),
+    ]
+
+    packages_repo = [Package.create_package_from_tuple(p) for p in packages]
 
     packages_repo.sort(key=lambda p: str(p), reverse=True)
 
@@ -85,7 +95,7 @@ class TestBundle:
     def do_test_calculate_case(self, test_case) -> None:
         tp = []
         if test_case['trigger_packages']:
-            tp = [Package.create_package(tp) for tp in test_case['trigger_packages']]
+            tp = [Package.create_package_from_tuple(tp) for tp in test_case['trigger_packages']]
 
         bundle = self.create_bundle(tp)
 

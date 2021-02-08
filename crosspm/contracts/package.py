@@ -70,10 +70,10 @@ class Package:
         return {k: Contract(k, v) for k, v in contracts.items()}
 
     @staticmethod
-    def create_package(package):
+    def create_package_from_tuple(package):
 
         if len(package) == 3:
-            return Package(package[0], str(package[1]), Package.create_contracts(package[2]))
+            return Package(package[0], str(package[1]), parse_contracts_from_package_properties(package[2]))
 
         return Package(package[0], str(package[1]), Package.create_contracts([]))
 
@@ -82,13 +82,13 @@ class Package:
 
         p = DebianPackageNameParser.parse_from_package_name(package_name)
 
-        return Package.create_package((p.package, p.fullversion))
+        return Package.create_package_from_tuple((p.package, p.fullversion))
 
     @staticmethod
     def create_packages(*packages):
         res = set()
         for p in packages:
-            res.add(Package.create_package(p))
+            res.add(Package.create_package_from_tuple(p))
 
         return res
 
@@ -105,7 +105,7 @@ def parse_contracts_from_package_properties(properties):
 
     for p in properties:
         if p.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
-            contracts[p] = properties[p]
+            contracts[p] = properties[p].split(',')
 
     return contracts
 
