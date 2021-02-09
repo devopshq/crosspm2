@@ -39,12 +39,14 @@ class Package:
     def has_contract(self, contract):
         return contract in self.contracts
 
+    def has_contracts(self, contracts):
+        return bool(self.contracts.keys() & contracts)
+
     def is_contract_lower_then(self, other):
         if other.name in self.contracts:
             return self.contracts[other.name].values != other.values
 
         raise BaseException("package {} has no contract {}", str(self), str(other))
-
 
     def is_any_contract_higher(self, other):
         for c in self.calc_contracts_intersection(other.contracts):

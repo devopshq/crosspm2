@@ -57,37 +57,31 @@ class Bundle:
         return self._packages
 
     def find_next_microservice_package(self, rest_packages_to_find):
-        next_packages_out_of_current_contracts = dict()
-        package_lowering_contract = []
 
-        for m in rest_packages_to_find:
-            for p in [i for i in self._packages_repo if i.is_microservice(m)]:
-                package = self.is_package_corresponds_bundle_current_contracts(next_packages_out_of_current_contracts,
-                                                                               p,
-                                                                               self._bundle_contracts,
-                                                                               package_lowering_contract)
-                if package:
-                    self._package_add(package)
-                    return
+        failed_contracts = set()
+        microservice_packages = [i for i in self._packages_repo if i.is_microservice(rest_packages_to_find[0])]
 
-            if package_lowering_contract:
-                p = package_lowering_contract[0]
+        if not microservice_packages:
+            raise CrosspmBundleNoValidContractsGraph(f"cant select next package for current contracts:\n"
+                                                     f"rest_packages_to_find : {rest_packages_to_find}\n"
+                                                     f"bundle.packages : {self._packages}")
 
-                self.remove_packages_with_higher_contracts_then(p)
-                self._package_add(p)
-
+        for p in [i for i in self._packages_repo if i.is_microservice(rest_packages_to_find[0])]:
+            package = self.is_package_corresponds_bundle_current_contracts(failed_contracts, p, self._bundle_contracts)
+            if package:
+                self._package_add(package)
                 return
 
-        package = self.select_next_microservice_package_out_of_current_contracts(next_packages_out_of_current_contracts,
-                                                                                 rest_packages_to_find)
-        if package:
-            self._package_add(package)
-            return
+        for package_name, package in self._packages.copy().items():
+            if package.has_contracts(failed_contracts):
+                if package in self._trigger_packages:
+                    raise CrosspmBundleNoValidContractsGraph(
+                        f"no tree resolve with trigger_packages {self._trigger_packages}, threre is no appropriate packages with specified package contracts")
 
-        raise CrosspmBundleNoValidContractsGraph(f"cant select next package for current contracts:\n"
-                                                 f"next_packages_out_of_current_contracts : {next_packages_out_of_current_contracts}\n"
-                                                 f"rest_packages_to_find : {rest_packages_to_find}\n"
-                                                 f"bundle.packages : {self._packages}")
+                del self._packages[package_name]
+                self._packages_repo.remove(package)
+
+        return
 
     def select_next_microservice_package_out_of_current_contracts(self, next_packages_out_of_current_contracts,
                                                                   select_order):
@@ -97,38 +91,24 @@ class Bundle:
 
         return None
 
-    def is_package_corresponds_bundle_current_contracts(self, next_packages_out_of_current_contracts, package,
-                                                        bundle_contracts, package_lowering_contract):
+    def is_package_corresponds_bundle_current_contracts(self, failed_contracts, package,
+                                                        bundle_contracts):
 
         intersection_package_contracts = package.calc_contracts_intersection(bundle_contracts)
 
         if not intersection_package_contracts:
-            cp = None
-            if package.name in next_packages_out_of_current_contracts:
-                cp = next_packages_out_of_current_contracts[package.name]
+            return package
 
-            if cp is None:
-                next_packages_out_of_current_contracts[package.name] = package
-            elif cp.version < package.version:
-                next_packages_out_of_current_contracts[package.name] = package
-
-            return None
-
-        failed_contracts = set(intersection_package_contracts)
+        failed_contracts.update(intersection_package_contracts)
         for c in intersection_package_contracts:
 
             if package.contracts[c] == bundle_contracts[c]:
                 failed_contracts.discard(c)
 
-            if package.contracts[c] != bundle_contracts[c]:
-                if not package_lowering_contract:
-                    package_lowering_contract.append(package)
-                elif package_lowering_contract[0].is_contract_lower_then(package.contracts[c]):
-                    package_lowering_contract.clear()
-                    package_lowering_contract.append(package)
-
         if not failed_contracts:
             return package
+
+        return None
 
     def remove_packages_with_higher_contracts_then(self, package_lowering_contract):
 
