@@ -120,7 +120,7 @@ class Bundle:
             if package.contracts[c] == bundle_contracts[c]:
                 failed_contracts.discard(c)
 
-            if package.contracts[c].value < bundle_contracts[c].value:
+            if package.contracts[c] != bundle_contracts[c]:
                 if not package_lowering_contract:
                     package_lowering_contract.append(package)
                 elif package_lowering_contract[0].is_contract_lower_then(package.contracts[c]):

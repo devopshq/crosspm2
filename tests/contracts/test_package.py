@@ -22,6 +22,20 @@ def test_parse_contracts_multiple_values_from_string():
     assert parse_contracts_from_string('contracts.db=2.5.230,3.4,6.123;contracts.rest=123,456,7890abcdef') \
         == {'contracts.db': ['2.5.230', '3.4', '6.123'], 'contracts.rest': ['123', '456', '7890abcdef']}
 
+def test_create_package_from_tuple():
+    p = Package.create_package_from_tuple(('db', '1', 'contracts.db=1'))
+
+    assert p == Package('db', '1', {'contracts.db' : ['1']})
+
+def test_package_to_str():
+    p = Package('db', '1',
+                {
+                    'contracts.db': Contract('contracts.db', ['123', 'abcdef']),
+                    'contracts.rest': Contract('contracts.rest', ['098', 'xyz']),
+                })
+
+    assert str(p) == "db.1(contracts.db['123', 'abcdef'];contracts.rest['098', 'xyz'])"
+
 # def test_is_microservice(self):
 #     assert False
 #

@@ -19,7 +19,7 @@ class Package:
         return hash(str(self.name) + str(self.version))
 
     def __str__(self):
-        return "{}.{}({})".format(self.name, self.version, ",".join(str(s[1]) for s in sorted(self.contracts.items())))
+        return "{}.{}({})".format(self.name, self.version, ";".join(str(s[1]) for s in sorted(self.contracts.items())))
 
     def __repr__(self):
         return str(self)
@@ -41,19 +41,14 @@ class Package:
 
     def is_contract_lower_then(self, other):
         if other.name in self.contracts:
-            return self.contracts[other.name].value < other.value
+            return self.contracts[other.name].values != other.values
 
         raise BaseException("package {} has no contract {}", str(self), str(other))
 
-    def is_contract_higher_then(self, other):
-        if other.name in self.contracts:
-            return self.contracts[other.name].value > other.value
-
-        raise BaseException("package {} has no contract {}", str(self), str(other))
 
     def is_any_contract_higher(self, other):
         for c in self.calc_contracts_intersection(other.contracts):
-            if self.contracts[c].value > other.contracts[c].value:
+            if self.contracts[c] != other.contracts[c]:
                 return True
 
         return False
@@ -73,7 +68,7 @@ class Package:
     def create_package_from_tuple(package):
 
         if len(package) == 3:
-            return Package(package[0], str(package[1]), parse_contracts_from_package_properties(package[2]))
+            return Package(package[0], str(package[1]), Package.create_contracts_from_dict(parse_contracts_from_string(package[2])))
 
         return Package(package[0], str(package[1]), Package.create_contracts([]))
 
@@ -109,13 +104,16 @@ def parse_contracts_from_package_properties(properties):
 
     return contracts
 
+
 def parse_contracts_from_string(contracts_string):
     contracts = Dict()
 
     for cs in contracts_string.strip().split(';'):
-        contract, values = cs.strip().split('=')
-        if contract.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
-            contracts[contract] = [v.strip() for v in values.split(',')]
+        props = cs.strip().split('=')
+        if props.__len__() == 2:
+            contract, values = props
+            if contract and contract.startswith(PACKAGE_PROPERTY_CONTRACT_PREFFIX):
+                contracts[contract] = [v.strip() for v in values.split(',')]
 
     return contracts
 
