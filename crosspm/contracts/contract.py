@@ -1,19 +1,19 @@
 class Contract:
-    def __init__(self, name, value):
+    def __init__(self, name, values):
         self.name = name
-        self.value = value
+        self.values = values
 
     def __hash__(self):
-        return hash((self.name, self.value))
+        return hash((self.name, self.values))
 
     def __str__(self):
-        return "{}.{}".format(self.name, self.value)
+        return "{}{}".format(self.name, self.values)
 
     def __repr__(self):
         return str(self)
 
     def __eq__(self, other):
-        return self.name == other.name and self.value == other.value
+        return self.name == other.name and (set(self.values) & set(other.values))
 
     def __ne__(self, other):
         return not (self == other)
