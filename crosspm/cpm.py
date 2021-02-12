@@ -211,7 +211,7 @@ class CrossPM:
             _depslock_path = _deps_path + '.lock'
 
         self._config = Config(self._args['--config'], self._args['--options'], self._args['--no-fails'],
-                              "",
+                              self._args['--output-path'],
                               _depslock_path, _deps_path,
                               self._args['--lock-on-success'], self._args['--prefer-local'],
                               self._args['--trigger-package'])
