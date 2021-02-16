@@ -20,6 +20,7 @@ class Bundle:
         if trigger_packages:
             for tp in trigger_packages:
                 self._trigger_packages.append(Bundle.find_trigger_package_in_packages_repo(tp, self._packages_repo))
+                validate_trigger_package_doesnt_hide_higher_version(tp, self._packages_repo)
 
         self._packages = dict()
         self._bundle_contracts = {}
@@ -130,3 +131,8 @@ class Bundle:
 
     def _package_add(self, package):
         self._packages[package.name] = package
+
+def validate_trigger_package_doesnt_hide_higher_version(tp, packages):
+    for p in packages:
+        if tp.version > p.version:
+            raise CrosspmBundleTriggerPackagesHasNoValidContractsGraph(tp)
