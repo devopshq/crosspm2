@@ -133,6 +133,6 @@ class Bundle:
         self._packages[package.name] = package
 
 def validate_trigger_package_doesnt_hide_higher_version(tp, packages):
-    for p in packages:
+    for p in [i for i in packages if i.is_microservice(tp.name)]:
         if tp.version > p.version:
             raise CrosspmBundleTriggerPackagesHasNoValidContractsGraph(tp)
