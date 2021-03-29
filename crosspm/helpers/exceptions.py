@@ -21,7 +21,8 @@ CROSSPM_ERRORCODES = (
     CROSSPM_ERRORCODE_UNKNOWN_ARCHIVE,
     CROSSPM_ERRORCODE_BUNDLE_NO_VALID_CONTRACTS_GRAPH,
     CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGES_HAS_NO_VALID_CONTRACTS_GRAPH,
-) = range(20)
+    CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGE_HIDES_HIGHER_VERSION,
+) = range(21)
 
 
 class CrosspmException(Exception):
@@ -45,3 +46,8 @@ class CrosspmBundleTriggerPackagesHasNoValidContractsGraph(CrosspmException):
 class CrosspmExceptionWrongArgs(CrosspmException):
     def __init__(self, msg=''):
         super().__init__(CROSSPM_ERRORCODE_WRONG_ARGS, msg)
+
+class CrosspmBundleTriggerPackageHidesHigherVersion(CrosspmException):
+    def __init__(self, trigger_package, package_with_higher_version):
+        super().__init__(CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGE_HIDES_HIGHER_VERSION,
+                         f"trigger_package : {trigger_package} hides package {package_with_higher_version}")

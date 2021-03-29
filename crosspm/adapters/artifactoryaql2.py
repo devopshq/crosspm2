@@ -73,7 +73,7 @@ class ArtifactoryAql2(BaseAdapter):
         package_names = [x.package_name for x in packages_matches]
 
         bundle = Bundle(package_names, repo_returned_packages_all,
-                        downloader._config.trigger_packages)
+                        downloader._config.trigger_packages, enable_tp_hides_higher_version=False)
 
         bundle_packages = bundle.calculate().values()
 

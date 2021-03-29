@@ -3,11 +3,12 @@ from ordered_set import OrderedSet
 
 from crosspm.contracts.package import is_packages_contracts_graph_resolvable
 from crosspm.helpers.exceptions import CrosspmException, CROSSPM_ERRORCODE_PACKAGE_NOT_FOUND, \
-    CrosspmBundleNoValidContractsGraph, CrosspmBundleTriggerPackagesHasNoValidContractsGraph
+    CrosspmBundleNoValidContractsGraph, CrosspmBundleTriggerPackagesHasNoValidContractsGraph, \
+    CrosspmBundleTriggerPackageHidesHigherVersion
 
 
 class Bundle:
-    def __init__(self, deps, packages_repo, trigger_packages):
+    def __init__(self, deps, packages_repo, trigger_packages, enable_tp_hides_higher_version):
         # it is vital for deps to be list, orderedset (or something with insertion order savings),
         # we need the order of packages in dependencies.txt to take next package
         # when no contracts satisfied
@@ -20,6 +21,8 @@ class Bundle:
         if trigger_packages:
             for tp in trigger_packages:
                 self._trigger_packages.append(Bundle.find_trigger_package_in_packages_repo(tp, self._packages_repo))
+                if not enable_tp_hides_higher_version:
+                    validate_trigger_package_doesnt_hide_higher_version(tp, self._packages_repo)
 
         self._packages = dict()
         self._bundle_contracts = {}
@@ -130,3 +133,10 @@ class Bundle:
 
     def _package_add(self, package):
         self._packages[package.name] = package
+
+def validate_trigger_package_doesnt_hide_higher_version(tp, packages):
+    for p in [i for i in packages if i.is_microservice(tp.name)]:
+        if tp.version < p.version:
+            raise CrosspmBundleTriggerPackageHidesHigherVersion(tp, p)
+
+    return True
