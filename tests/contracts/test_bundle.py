@@ -1,8 +1,9 @@
 import pytest
 
-from crosspm.contracts.bundle import Bundle
+from crosspm.contracts.bundle import Bundle, validate_trigger_package_doesnt_hide_higher_version
 from crosspm.contracts.package import Package
-from crosspm.helpers.exceptions import CrosspmBundleNoValidContractsGraph, CrosspmException
+from crosspm.helpers.exceptions import CrosspmBundleNoValidContractsGraph, CrosspmException, \
+    CrosspmBundleTriggerPackageHidesHigherVersion
 
 
 def create_packages_repo(packages):
@@ -37,8 +38,8 @@ def packages_repo_contract_single_value():
 
     return create_packages_repo(packages)
 
-def create_bundle(deps_txt, packages_repo, trigger_packages):
-    return Bundle(deps_txt, packages_repo, trigger_packages)
+def create_bundle(deps_txt, packages_repo, trigger_packages, enable_tp_hides_higher_version):
+    return Bundle(deps_txt, packages_repo, trigger_packages, enable_tp_hides_higher_version)
 
 
 class TestBundle:
@@ -100,7 +101,7 @@ class TestBundle:
         if test_case['trigger_packages']:
             tp = [Package.create_package_from_tuple(tp) for tp in test_case['trigger_packages']]
 
-        bundle = create_bundle(deps_txt, packages_repo, tp)
+        bundle = create_bundle(deps_txt, packages_repo, tp, True)
 
         packages = set(bundle.calculate().values())
 
@@ -150,3 +151,28 @@ class TestBundle:
     def test_contract_multiple_values_calculate_success(self, test_case):
         deps_txt = ['db', 'be', 'ui', 'ncp']
         self.do_test_calculate_case(deps_txt, self.packages_repo_contract_multiple_values(), test_case)
+
+    def test_trigger_packages_doesnt_hide_higher_version(self):
+        repo = self.packages_repo_contract_multiple_values()
+
+        assert validate_trigger_package_doesnt_hide_higher_version(Package.create_package_from_tuple(('db', 6)), repo)
+        assert validate_trigger_package_doesnt_hide_higher_version(Package.create_package_from_tuple(('ui', 5)), repo)
+
+        with pytest.raises(CrosspmBundleTriggerPackageHidesHigherVersion):
+            validate_trigger_package_doesnt_hide_higher_version(Package.create_package_from_tuple(('ui', 1)), repo)
+
+
+def test_validate_trigger_package_doesnt_hide_higher_version():
+    packages = ["tad-db_1.2.3_all.deb", "tad-db_1.3.3_all.deb"]
+
+    repo = [Package.create_package_debian(p) for p in packages]
+
+    assert validate_trigger_package_doesnt_hide_higher_version(Package.create_package_debian("tad-db_1.3.4_all.deb"), repo)
+    assert validate_trigger_package_doesnt_hide_higher_version(Package.create_package_debian("tad-db_2.1.1_all.deb"),
+                                                               repo)
+
+    with pytest.raises(CrosspmBundleTriggerPackageHidesHigherVersion):
+        validate_trigger_package_doesnt_hide_higher_version(Package.create_package_debian("tad-db_1.2.4_all.deb"), repo)
+
+    with pytest.raises(CrosspmBundleTriggerPackageHidesHigherVersion):
+        validate_trigger_package_doesnt_hide_higher_version(Package.create_package_debian("tad-db_1.1.4_all.deb"), repo)
