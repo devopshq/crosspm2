@@ -47,6 +47,7 @@ class CrosspmExceptionWrongArgs(CrosspmException):
     def __init__(self, msg=''):
         super().__init__(CROSSPM_ERRORCODE_WRONG_ARGS, msg)
 
+
 class CrosspmBundleTriggerPackageHidesHigherVersion(CrosspmException):
     def __init__(self, trigger_package, package_with_higher_version):
         super().__init__(CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGE_HIDES_HIGHER_VERSION,
