@@ -29,8 +29,6 @@ class Usedby(Locker):
         self._log.info('Check dependencies ...')
         self._root_package.find_usedby(depslock_file_path, property_validate=True)
         self._log.info('')
-        self._log.info('Dependency tree:')
-        self._root_package.print(0, self._config.output('tree', [{self._config.name_column: 0}]))
 
     def entrypoint(self, *args, **kwargs):
         self.usedby_packages(*args, **kwargs)

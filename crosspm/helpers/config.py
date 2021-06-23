@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
+import platform
+
 import json
 import logging
 import os
-import platform
-import sys
-
+import packaging
 import requests
 import yaml
 
-from crosspm.helpers.cache import Cache
-from crosspm.helpers.content import DependenciesContent
+import crosspm.contracts.package
+from crosspm.adapters.artifactoryaql import ArtifactoryAql
+from crosspm.adapters.artifactoryaql2 import ArtifactoryAql2
 from crosspm.helpers.exceptions import *
 from crosspm.helpers.parser import Parser
+from crosspm.helpers.parser2 import Parser2
 from crosspm.helpers.source import Source
 
 requests.packages.urllib3.disable_warnings()
@@ -44,16 +46,54 @@ GLOBAL_CONFIG_PATH = [
 
 ENVIRONMENT_CONFIG_PATH = 'CROSSPM_CONFIG_PATH'
 CROSSPM_DEPENDENCY_FILENAME = 'dependencies.txt'  # maybe 'cpm.manifest'
-CROSSPM_DEPENDENCY_LOCK_FILENAME = CROSSPM_DEPENDENCY_FILENAME  # 'dependencies.txt.lock'
+CROSSPM_DEPENDENCY_LOCK_FILENAME = 'dependencies.txt.lock'  # 'dependencies.txt.lock'
 CROSSPM_ADAPTERS_NAME = 'adapters'
 CROSSPM_ADAPTERS_DIR = os.path.join(CROSSPM_ROOT_DIR, CROSSPM_ADAPTERS_NAME)
+
+
+class FactoryParser:
+    def __init__(self):
+        self.parsers = {}
+        self.register_parser('repo', Parser)
+        self.register_parser('repo2', Parser2)
+
+    def register_parser(self, name, parser_cls):
+        self.parsers[name] = parser_cls
+
+    def create(self, name, data, config):
+        parser_cls = self.parsers[name]
+        return parser_cls(name, data, config)
+
+
+#
+# class FactoryAdapter:
+#     def __init__(self):
+#         self.adapters = {}
+#         self.register_adapter('artifactory-aql', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory-aql', ArtifactoryAql)
+#         self.register_adapter('artifactory', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory', ArtifactoryAql)
+#         self.register_adapter('jfrog-artifactory-aql2', ArtifactoryAql2)
+#
+#     def register_adapter(self, name, adapter_cls):
+#         self.adapters[name] = adapter_cls
+#
+#     def create(self, name, data, config):
+#         adapter_cls = self.adapters[name]
+#         return adapter_cls(name, data, config)
+
+
+factory_parser = FactoryParser()
+
+
+# factory_adapter = FactoryAdapter()
 
 
 class Config:
     windows = WINDOWS
 
-    def __init__(self, config_file_name='', cmdline='', no_fails=False, depslock_path='', deps_path='',
-                 lock_on_success=False, prefer_local=False):
+    def __init__(self, config_file_name='', cmdline='', no_fails=False, output_path='', depslock_path='', deps_path='',
+                 lock_on_success=False, prefer_local=False, trigger_package_str=None):
         self._log = logging.getLogger('crosspm')
         self._config_path_env = []
         self._sources = []
@@ -67,51 +107,55 @@ class Config:
         self._output = {}
         self._solid = {}
         self._fails = {}
-        self.name_column = ''
-        self.deps_file_name = ''
-        self.deps_lock_file_name = ''
+        self.name_column = 'package'
+        self.deps_file_name = 'dependencies.txt'
+        self.deps_lock_file_name = 'dependencies.txt.lock'
         self.lock_on_success = lock_on_success
         self.prefer_local = prefer_local
+
+        try:
+            if trigger_package_str:
+                self.trigger_packages = create_list_of_trigger_packages(trigger_package_str)
+            else:
+                self.trigger_packages = []
+        except packaging.version.InvalidVersion:
+            raise CrosspmException(CROSSPM_ERRORCODE_VERSION_PATTERN_NOT_MATCH,
+                                   f'trigger-package({trigger_package}) violates naming convension PEP-440, name it correctly')
+
         self.crosspm_cache_root = ''
         self.deps_path = ''
         self.depslock_path = ''
         self.cache_config = {}
         self.init_env_config_path()
         self.secret_variables = []
-
+        self.output_path = output_path
         cpm_conf_name = ''
+
         if deps_path:
-            if deps_path.__class__ is DependenciesContent:
-                # HACK
-                self.deps_path = deps_path
-            else:
-                deps_path = deps_path.strip().strip('"').strip("'")
-                self.deps_path = os.path.realpath(os.path.expanduser(deps_path))
-            if not cpm_conf_name:
-                cpm_conf_name = self.get_cpm_conf_name(deps_path)
-            if os.path.isfile(deps_path):
-                config_path_tmp = os.path.dirname(deps_path)
-            else:
-                config_path_tmp = deps_path
-            if config_path_tmp not in DEFAULT_CONFIG_PATH:
-                DEFAULT_CONFIG_PATH.append(config_path_tmp)
+            deps_path = deps_path.strip().strip('"').strip("'")
+            self.deps_path = os.path.realpath(os.path.expanduser(deps_path))
 
         if depslock_path:
-            if depslock_path.__class__ is DependenciesContent:
-                # HACK
-                self.depslock_path = depslock_path
-            else:
-                depslock_path = depslock_path.strip().strip('"').strip("'")
-                self.depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
+            depslock_path = depslock_path.strip().strip('"').strip("'")
+            self.depslock_path = os.path.realpath(os.path.expanduser(depslock_path))
 
-            if not cpm_conf_name:
-                cpm_conf_name = self.get_cpm_conf_name(depslock_path)
-            if os.path.isfile(depslock_path):
-                config_path_tmp = os.path.dirname(depslock_path)
-            else:
-                config_path_tmp = depslock_path
-            if config_path_tmp not in DEFAULT_CONFIG_PATH:
-                DEFAULT_CONFIG_PATH.append(config_path_tmp)
+        if not cpm_conf_name:
+            cpm_conf_name = self.get_cpm_conf_name(deps_path)
+        if os.path.isfile(deps_path):
+            config_path_tmp = os.path.dirname(deps_path)
+        else:
+            config_path_tmp = deps_path
+        if config_path_tmp not in DEFAULT_CONFIG_PATH:
+            DEFAULT_CONFIG_PATH.append(config_path_tmp)
+
+        if not cpm_conf_name:
+            cpm_conf_name = self.get_cpm_conf_name(depslock_path)
+        if os.path.isfile(depslock_path):
+            config_path_tmp = os.path.dirname(depslock_path)
+        else:
+            config_path_tmp = depslock_path
+        if config_path_tmp not in DEFAULT_CONFIG_PATH:
+            DEFAULT_CONFIG_PATH.append(config_path_tmp)
 
         self._config_file_name = self.find_config_file(config_file_name, cpm_conf_name)
         self._global_config_file_name = self.find_global_config_file()
@@ -142,8 +186,6 @@ class Config:
 
         self.no_fails = no_fails
         self.parse_config(config_data, cmdline)
-        self.cache = Cache(self, self.cache_config)
-        # self._fails = {}
 
     def get_cpm_conf_name(self, deps_filename=''):
         if not deps_filename:
@@ -385,7 +427,7 @@ class Config:
         return result
 
     def parse_config(self, config_data, cmdline):
-        # init parsers
+        # init package_parsers
         if 'parsers' in config_data:
             self.init_parsers(config_data['parsers'])
 
@@ -488,13 +530,20 @@ class Config:
             _cmdline = {}
 
         # init cpm parameters
+        cpm_init_done = False
+
         for x in ['cpm', 'crosspm']:
             if x in config_data:
                 # init cache:
                 if 'cache' not in config_data:
                     config_data['cache'] = {}
                 self.init_cpm_and_cache(config_data[x], _cmdline, config_data['cache'])
+                cpm_init_done = True
                 break
+        if not cpm_init_done:
+            if 'cache' not in config_data:
+                config_data['cache'] = {}
+            self.init_cpm_and_cache({}, _cmdline, config_data['cache'])
 
         self._options = self.parse_options(self._options, _cmdline)
 
@@ -559,26 +608,22 @@ class Config:
         # gather items from defaults
         self._not_columns.update({k: v for k, v in self._defaults.items() if k not in self._not_columns})
 
-        # gather items from parsers
+        # gather items from package_parsers
         for _parser in self._parsers.values():
             self._not_columns.update({k: None for k in _parser.get_vars() if k not in self._not_columns})
 
     def init_parsers(self, parsers):
-        if 'common' not in parsers:
-            parsers['common'] = {}
         for k, v in parsers.items():
-            if k != 'common':
-                if k not in self._parsers:
-                    v.update({_k: _v for _k, _v in parsers['common'].items() if _k not in v})
-                    self._parsers[k] = Parser(k, v, self)
-                else:
-                    code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
-                    msg = 'Config file contains multiple definitions of the same parser: [{}]'.format(k)
-                    self._log.exception(msg)
-                    raise CrosspmException(code, msg)
+            if k not in self._parsers:
+                self._parsers[k] = factory_parser.create(k, v, self)
+            else:
+                code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
+                msg = 'Config file contains multiple definitions of the same parser: [{}]'.format(k)
+                self._log.exception(msg)
+                raise CrosspmException(code, msg)
         if len(self._parsers) == 0:
             code = CROSSPM_ERRORCODE_CONFIG_FORMAT_ERROR
-            msg = 'Config file does not contain parsers! Unable to process any further.'
+            msg = 'Config file does not contain package_parsers! Unable to process any further.'
             self._log.exception(msg)
             raise CrosspmException(code, msg)
 
@@ -586,44 +631,12 @@ class Config:
         return self._parsers[parser_name] if parser_name in self._parsers else None
 
     def init_adapters(self, types):
-        if not os.path.isdir(CROSSPM_ADAPTERS_DIR):
-            code = CROSSPM_ERRORCODE_ADAPTER_ERROR
-            msg = 'Adapters directory does not found!'
-            self._log.exception(msg)
-            raise CrosspmException(code, msg)
 
-        _cwd = os.getcwd()
-        _base_dir = os.path.dirname(CROSSPM_ROOT_DIR)
-        _adapters_app = '.'.join(os.path.split(os.path.relpath(CROSSPM_ADAPTERS_DIR, _base_dir)))
-        os.chdir(_base_dir)
-        _remove = False
-        if _base_dir not in sys.path:
-            sys.path.insert(0, _base_dir)
-            _remove = True
-
-        for _file_name in os.listdir(CROSSPM_ADAPTERS_DIR):
-            if _file_name.startswith(('__', 'common',)):
-                continue
-
-            _app_file_name, _ext = os.path.splitext(_file_name)
-            if not _ext.startswith('.py'):
-                continue
-            _app_name = '.'.join((_adapters_app, _app_file_name,))
-
-            try:
-                _temp = __import__(_app_name, globals(), locals(), ['setup', 'Adapter'], 0)
-                _names = _temp.setup['name']
-                if isinstance(_names, str):
-                    _names = [_names]
-                self._adapters.update({k: _temp.Adapter(self) for k in _names if k in types})
-
-            except Exception as e:
-                msg = 'Error initializing adapter {}: [{}]'.format(_file_name, e)
-                self._log.error(msg)
-
-        if _remove:
-            sys.path.remove(_base_dir)
-        os.chdir(_cwd)
+        self._adapters['jfrog-artifactory-aql2'] = ArtifactoryAql2(self)
+        self._adapters['artifactory-aql'] = ArtifactoryAql(self)
+        self._adapters['jfrog-artifactory-aql'] = ArtifactoryAql(self)
+        self._adapters['artifactory'] = ArtifactoryAql(self)
+        self._adapters['jfrog-artifactory'] = ArtifactoryAql(self)
 
     @staticmethod
     def parse_options(options, cmdline, check_default=False):
@@ -736,7 +749,7 @@ class Config:
             return ', '.join(x[0] for x in levels)
 
         if level == 'console':
-            level = 'debug'
+            level = 'info'
 
         default = None
         for x in levels:
@@ -763,3 +776,8 @@ class Config:
         if not result:
             result = 'C:'
         return result
+
+
+def create_list_of_trigger_packages(trigger_package_str):
+    return [crosspm.contracts.package.Package.create_package_debian(tp.strip())
+            for tp in trigger_package_str.strip().split(',')]

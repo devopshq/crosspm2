@@ -1,9 +1,8 @@
 language: python
 python:
-  - '3.4'
-  - '3.5'
   - '3.6'
   - '3.7'
+  - '3.8'
 
 branches:
   only:
@@ -16,8 +15,8 @@ install:
   - pip install -r requirements-ci.txt
 
 before_script:
-  - git config --global user.email "ak@alkov.pro"
-  - git config --global user.name "Alexander Kovalev"
+  - git config --global user.email "tim55667757@gmail.com"
+  - git config --global user.name "Timur Gilmullin"
 
 before_deploy:
   - GH_TOKEN="$(cat $GH_TOKEN_FILE)"
@@ -27,7 +26,7 @@ script:
   - flake8 crosspm
   - coverage run -m py.test tests
   - coverage xml
-  - if [[ ! $CODACY_PROJECT_TOKEN ]]; then echo "Variable CODACY_PROJECT_TOKEN not set. Step is skipped."; exit 0; else python-codacy-coverage -r coverage.xml; fi
+#  - if [[ ! $CODACY_PROJECT_TOKEN ]]; then echo "Variable CODACY_PROJECT_TOKEN not set. Step is skipped."; else python-codacy-coverage -r coverage.xml; fi
   - set +e
 
 deploy:
@@ -39,7 +38,7 @@ deploy:
   skip_cleanup: true
   on:
     all_branches: true
-    python: '3.5'
+    python: '3.8'
 after_script:
 - echo "yes we run after_script"
 - echo "" > $GH_TOKEN_FILE

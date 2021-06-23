@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import copy
 import fnmatch
+
 import itertools
 import logging
 import os
 import re
 
-from crosspm.helpers.content import DependenciesContent
 from crosspm.helpers.exceptions import *
 
 
@@ -197,6 +197,7 @@ class Parser:
         return _res
 
     def merge_with_mask(self, column, value):
+
         if column not in self._columns:
             if isinstance(value, (list, tuple)):
                 # TODO: Check for value is not None - if it is, raise "column value not set"
@@ -487,14 +488,9 @@ class Parser:
                                 # _path = /pool/detects/e/filename.deb
                                 try:
                                     if '*' in _sym:
-                                        re_str = fnmatch.translate(_sym)
-                                        # \/pool\/.*\/\Z(?ms) => \/pool\/.*\/
-                                        if re_str.endswith('\\Z(?ms)'):
-                                            re_str = re_str[:-7]
-                                        found_str = re.match(re_str, _path).group()
-                                        _path = _path[len(found_str):]
-                                        _new_path += found_str
-                                        _res = True
+                                        _new_path, _path, _res = self.validate_glob_pattern_match(_new_path,
+                                                                                                  _path, _res,
+                                                                                                  _sym)
                                         break
                                 except Exception as e:
                                     logging.error("Something wrong when parse '{}' in '{}'".format(_sym, _path))
@@ -1065,3 +1061,17 @@ https://repo.example.com/artifactory/libs-cpp-release.snapshot/boost/1.60-pm/*.*
         if match is None:
             return {}
         return match.groupdict()
+
+    def validate_glob_pattern_match(self, _new_path, _path, _res, _sym):
+        if '/**/' == _sym:
+            re_str = '(.*)\\/'
+        else:
+            re_str = fnmatch.translate(_sym)
+        # \/pool\/.*\/\Z(?ms) => \/pool\/.*\/
+        if re_str.endswith('\\Z(?ms)'):
+            re_str = re_str[:-7]
+        found_str = re.match(re_str, _path).group()
+        _path = _path[len(found_str):]
+        _new_path += found_str
+        _res = True
+        return _new_path, _path, _res

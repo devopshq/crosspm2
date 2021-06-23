@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-import os
 import fnmatch
-import logging
 
+import logging
+import os
 # third-party
 import requests
+
 from crosspm.helpers.config import CROSSPM_DEPENDENCY_LOCK_FILENAME
 from crosspm.helpers.exceptions import *
 

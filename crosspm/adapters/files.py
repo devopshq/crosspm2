@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import json
-import shutil
+import os
 import pathlib
+import shutil
+
 from crosspm.adapters.common import BaseAdapter
 from crosspm.helpers.exceptions import *  # noqa
 from crosspm.helpers.package import Package
-import os
 
 CHUNK_SIZE = 1024
 
@@ -172,13 +173,11 @@ class Adapter(BaseAdapter):
                     _packages = [_packages]
 
                 if len(_packages) == 1:
-                    _stat_pkg = self.pkg_stat(_packages[0]['path'])
-
                     _params_raw = _params_found_raw.get(_packages[0]['path'], {})
                     _params_tmp = _params_found.get(_packages[0]['path'], {})
                     _params_tmp.update({k: v for k, v in _packages[0]['params'].items() if k not in _params_tmp})
                     _package = Package(_pkg_name, _packages[0]['path'], _paths['params'], downloader, self, parser,
-                                       _params_tmp, _params_raw, _stat_pkg)
+                                       _params_tmp, _params_raw)
                     _mark = 'chosen'
                     self._log.info('  {}: {}'.format(_mark, str(_packages[0]['path'])))
 
