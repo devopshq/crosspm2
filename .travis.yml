@@ -8,6 +8,7 @@ branches:
   only:
     - master
     - develop
+
 before_install:
   - export GH_TOKEN_FILE=$(mktemp); echo $GH_TOKEN > $GH_TOKEN_FILE; GH_TOKEN=""
 
