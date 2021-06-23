@@ -1,7 +1,7 @@
 CrossPM
 =======
 
-[![build](https://travis-ci.org/devopshq/crosspm2.svg?branch=master)](https://travis-ci.org/devopshq/crosspm2)
+[![build](https://travis-ci.com/devopshq/crosspm2.svg?branch=master)](https://travis-ci.com/devopshq/crosspm2)
 [![pypi](https://img.shields.io/pypi/v/crosspm2.svg)](https://pypi.python.org/pypi/crosspm2)
 [![license](https://img.shields.io/pypi/l/crosspm2.svg)](https://github.com/devopshq/crosspm2/blob/master/LICENSE)
 
