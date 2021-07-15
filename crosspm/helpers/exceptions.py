@@ -52,4 +52,4 @@ class CrosspmBundleTriggerPackageHidesHigherVersion(CrosspmException):
     def __init__(self, trigger_package, package_with_higher_version):
         super().__init__(CROSSPM_ERRORCODE_BUNDLE_TRIGGER_PACKAGE_HIDES_HIGHER_VERSION,
                          f"trigger_package warning : {trigger_package} package cannot be included in the bundle "
-                          "because there is another allowed package of a newer version - {package_with_higher_version}")
+                         f"because there is another allowed package of a newer version - {package_with_higher_version}")
